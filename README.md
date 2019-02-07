@@ -1,1 +1,1 @@
-# cosmosglobaldistdemos
+# Cosmos Global Distribution Demos
