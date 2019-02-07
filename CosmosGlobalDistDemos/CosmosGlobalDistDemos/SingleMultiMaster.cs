@@ -9,6 +9,14 @@ using System.Collections.Generic;
 
 namespace CosmosGlobalDistDemos
 {
+
+    /*
+     * Resources needed for this demo:
+     * 
+     *   Single Master => Cosmos DB account: Replication: Single-Master, Write Region: East US 2, Read Region: West US 2, Consistency: Session
+     *   Multi-Master => Cosmos DB account: Replication: Multi-Master, Write Region: East US 2, West US 2, North Europe, Consistency: Session
+     *   
+    */
     class SingleMultiMaster
     {
         private string databaseName;

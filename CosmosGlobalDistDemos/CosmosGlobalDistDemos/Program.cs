@@ -12,13 +12,16 @@ namespace CosmosGlobalDistDemos
         {
             /*
              * Resources needed for this demo:
-             * - Cosmos DB account (multi-master = disabled), SouthEast Asia, West US 2, North Europe
-             * - Cosmos DB account (multi-master = enabled), SouthEast Asia, West US 2, North Europe
-             * - Windows VM, West US 2, Standard B4 (4 core, 16GB), RDP enabled.
-			 * - Copy the project to the VM in West US 2 and run from desktop.
              * 
-             * - Fill endpoints and keys from both Cosmos DB accounts in app.config
-			 * - Uncomment InitializeDemo() below to create the database and collections for both accounts
+             * Demo is designed to run from a VM in West US 2
+             * 
+             * Windows VM, West US 2, Standard B4 (4 core, 16GB), RDP enabled. This solution gets run from the VM.
+             * 
+             * Each class has instructions on Cosmos accounts to provision
+             * Fill endpoints and keys from all provisioned Cosmos DB accounts in app.config, do not modify anything else.
+             * 
+             * Run the Initialize before executing any of the demos to provision database and container resources
+             * Run clean up to remove databaser and containers. Use portal to delete accounts.
             */
 
             Demo demo = new Demo();

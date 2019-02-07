@@ -9,6 +9,16 @@ using System.Collections.Generic;
 
 namespace CosmosGlobalDistDemos
 {
+
+    /*
+        * Resources needed for this demo:
+        * 
+        * 
+        *   Eventual => Cosmos DB account: Replication: Single-Master, Write Region: West US 2, Read Region: Central US, Consistency: Eventual
+        *   Strong 1K Miles => Cosmos DB account: Replication: Single-Master, Write Region: West US 2, Read Region: Central US, Consistency: Strong
+        *   Strong 2K Miles => Cosmos DB account: Replication: Single-Master, Write Region: West US 2, Read Region: East US 2, Consistency: Strong
+        *   
+    */
     class ConsistencyLatency
     {
         private string databaseName;

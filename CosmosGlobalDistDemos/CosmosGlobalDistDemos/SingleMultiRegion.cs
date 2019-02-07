@@ -9,6 +9,20 @@ using System.Collections.Generic;
 
 namespace CosmosGlobalDistDemos
 {
+
+    /*
+        * Resources needed for this demo:
+        * 
+        * Shared for all demos in this solution
+        * - Windows VM, West US 2, Standard B4 (4 core, 16GB), RDP enabled. This solution gets run from the VM.
+        * 
+        *   Single Region => Cosmos DB account: Replication: Single-Master, Write Region: Southeast Asia, Consistency: Session
+        *   Multi-Region => Cosmos DB account: Replication: Single-Master, Write Region: Southeast Asia, Read Region: West US 2, Consistency: Session
+        *   
+    */
+
+
+
     class SingleMultiRegion
     {
         private string databaseName;
@@ -240,8 +254,6 @@ namespace CosmosGlobalDistDemos
 
         public string ParseEndpoint(Uri endPoint)
         {
-            //"https://mjb-latency-multi-region-southeastasia.documents.azure.com/";
-
             string x = endPoint.ToString();
 
             int tail = x.IndexOf(".documents.azure.com");

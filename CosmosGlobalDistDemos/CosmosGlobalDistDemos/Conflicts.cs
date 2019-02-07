@@ -13,6 +13,15 @@ using System.Runtime.Serialization;
 
 namespace CosmosGlobalDistDemos
 {
+
+    /*
+     * Resources needed for this demo:
+     * 
+     *   Shared with SingleMultiMaster.cs
+     *   Multi-Master => Cosmos DB account: Replication: Multi-Master, Write Region: East US 2, West US 2, North Europe, Consistency: Session
+     *   
+    */
+
     class Conflicts
     {
         private List<DocumentClient> clients;
@@ -289,7 +298,14 @@ namespace CosmosGlobalDistDemos
         }
         public async Task CleanUp()
         {
-            await clients[0].DeleteDatabaseAsync(databaseUri);
+            try
+            {   //this will likely be deleted by the SingleMultiMaster.cs Cleanup so put in try block and ignore error.
+                await clients[0].DeleteDatabaseAsync(databaseUri);
+            }
+            catch
+            {
+                //do nothing
+            }
         }
         private static class RandomGen
         {

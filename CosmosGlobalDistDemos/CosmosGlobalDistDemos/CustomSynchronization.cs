@@ -10,6 +10,13 @@ using Microsoft.Azure.Documents.Client;
 
 namespace CosmosGlobalDistDemos
 {
+    /*
+    * Resources needed for this demo:
+    * 
+    *   Custom => Cosmos DB account: Replication: Multi-Master, Write Region: West US 2, East US 2, West US, East US, Consistency: Session
+    *   Strong => Cosmos DB account: Replication: Multi-Master, Write Region: West US 2, East US 2, West US, East US, Consistency: Session
+    *   
+*/
     public class CustomSynchronization
     {
         private string databaseName;
