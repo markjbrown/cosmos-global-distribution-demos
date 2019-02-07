@@ -182,15 +182,17 @@ namespace CosmosGlobalDistDemos
 
         public async Task CleanUp()
         {
-            await clientEventual.DeleteDatabaseAsync(databaseUri);
-            await clientStrong1kMiles.DeleteDatabaseAsync(databaseUri);
-            await clientStrong2kMiles.DeleteAttachmentAsync(databaseUri);
+            try
+            { 
+                await clientEventual.DeleteDatabaseAsync(databaseUri);
+                await clientStrong1kMiles.DeleteDatabaseAsync(databaseUri);
+                await clientStrong2kMiles.DeleteAttachmentAsync(databaseUri);
+            }
+            catch {}
         }
 
         private string ParseEndpoint(Uri endPoint)
         {
-            //"https://mjb-latency-multi-region-southeastasia.documents.azure.com/";
-
             string x = endPoint.ToString();
 
             int tail = x.IndexOf(".documents.azure.com");

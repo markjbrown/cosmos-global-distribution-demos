@@ -44,7 +44,7 @@ namespace CosmosGlobalDistDemos
             while (exit == false)
             {
                 Console.Clear();
-                Console.WriteLine($"Select a number to run the following demos");
+                Console.WriteLine($"Cosmos DB Global Distribution and Multi-Master Tests");
                 Console.WriteLine($"--------------------------------------------------");
                 Console.WriteLine($"[1]   Single-Region vs. Multi-Region Read Latency");
                 Console.WriteLine($"[2]   Consistency vs. Latency");

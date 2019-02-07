@@ -287,8 +287,6 @@ namespace CosmosGlobalDistDemos
         }
         private string ParseEndpoint(Uri endPoint)
         {
-            //"https://mjb-latency-multi-region-southeastasia.documents.azure.com/";
-
             string x = endPoint.ToString();
 
             int tail = x.IndexOf(".documents.azure.com");
@@ -299,13 +297,10 @@ namespace CosmosGlobalDistDemos
         public async Task CleanUp()
         {
             try
-            {   //this will likely be deleted by the SingleMultiMaster.cs Cleanup so put in try block and ignore error.
+            {
                 await clients[0].DeleteDatabaseAsync(databaseUri);
             }
-            catch
-            {
-                //do nothing
-            }
+            catch { }
         }
         private static class RandomGen
         {

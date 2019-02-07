@@ -248,8 +248,12 @@ namespace CosmosGlobalDistDemos
 
         public async Task CleanUp()
         {
-            await clientSingle.DeleteDatabaseAsync(databaseUri);
-            await clientMulti.DeleteDatabaseAsync(databaseUri);
+            try
+            {
+                await clientSingle.DeleteDatabaseAsync(databaseUri);
+                await clientMulti.DeleteDatabaseAsync(databaseUri);
+            }
+            catch { }
         }
 
         public string ParseEndpoint(Uri endPoint)
