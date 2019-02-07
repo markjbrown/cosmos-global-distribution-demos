@@ -66,6 +66,7 @@ namespace CosmosGlobalDistDemos
                 {
                     Console.Clear();
                     await consistencyLatency.RunDemo();
+
                 }
                 else if (result.KeyChar == '3')
                 {

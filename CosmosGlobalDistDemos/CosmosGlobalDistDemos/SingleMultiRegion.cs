@@ -16,8 +16,8 @@ namespace CosmosGlobalDistDemos
         * Shared for all demos in this solution
         * - Windows VM, West US 2, Standard B4 (4 core, 16GB), RDP enabled. This solution gets run from the VM.
         * 
-        *   Single Region => Cosmos DB account: Replication: Single-Master, Write Region: Southeast Asia, Consistency: Session
-        *   Multi-Region => Cosmos DB account: Replication: Single-Master, Write Region: Southeast Asia, Read Region: West US 2, Consistency: Session
+        *   Single Region => Cosmos DB account: Replication: Single-Master, Write Region: Southeast Asia, Consistency: Eventual
+        *   Multi-Region => Cosmos DB account: Replication: Single-Master, Write Region: Southeast Asia, Read Region: West US 2, Consistency: Eventual
         *   
     */
 
@@ -104,6 +104,7 @@ namespace CosmosGlobalDistDemos
 
         public async Task Initalize()
         {
+            Console.WriteLine("Single/Multi Region Initialize");
             //Database definition
             Database database = new Database { Id = databaseName };
 
@@ -132,8 +133,6 @@ namespace CosmosGlobalDistDemos
 
         private async Task Populate()
         {
-            Stopwatch stopwatch = new Stopwatch();
-
             var sql = "SELECT * FROM c";
 
             FeedOptions feedOptions = new FeedOptions
@@ -146,18 +145,13 @@ namespace CosmosGlobalDistDemos
             var documents = clientSingle.CreateDocumentQuery(containerUri, sql, feedOptions).ToList();
             if (documents.Count == 0)
             {
-                Console.WriteLine($"Single Region demo container is empty, populating with sample data");
-                Console.WriteLine();
+                Console.WriteLine($"Populating Single Region container");
                 for (int i = 0; i < 100; i++)
                 {
                     SampleCustomer customer = customerGenerator.Generate();
-                    stopwatch.Start();
-                        await clientSingle.CreateDocumentAsync(containerUri, customer);
-                    stopwatch.Stop();
-                    Console.WriteLine($"Single Region write: Item {i} of 100 in region, {region}. Elapsed time: {stopwatch.ElapsedMilliseconds} ms");
-                    stopwatch.Reset();
+                    await clientSingle.CreateDocumentAsync(containerUri, customer);
                 }
-                Console.WriteLine();
+                Console.WriteLine($"Populating complete");
             }
             
 
@@ -166,18 +160,13 @@ namespace CosmosGlobalDistDemos
             documents = clientMulti.CreateDocumentQuery(containerUri, sql, feedOptions).ToList();
             if (documents.Count == 0)
             {
-                Console.WriteLine($"Single Region demo container is empty, populating with sample data");
-                Console.WriteLine();
+                Console.WriteLine($"Populating Multi Region container");
                 for (int i = 0; i < 100; i++)
                 {
                     SampleCustomer customer = customerGenerator.Generate();
-                    stopwatch.Start();
-                        await clientMulti.CreateDocumentAsync(containerUri, customer);
-                    stopwatch.Stop();
-                    Console.WriteLine($"Multiple Region write: Item {i} of 100 in region, {region}. Elapsed time: {stopwatch.ElapsedMilliseconds} ms");
-                    stopwatch.Reset();
+                    await clientMulti.CreateDocumentAsync(containerUri, customer);
                 }
-                Console.WriteLine();
+                Console.WriteLine($"Populating complete");
             }
         }
 
@@ -208,7 +197,7 @@ namespace CosmosGlobalDistDemos
 
             foreach (Document item in items)
             {
-                ResourceResponse<Document> response = await clientSingle.ReadDocumentAsync(item.SelfLink, requestOptions);
+                ResourceResponse<Document> response = await client.ReadDocumentAsync(item.SelfLink, requestOptions);
                 Console.WriteLine($"Read {i} of {total}, region: {region}, Latency: {response.RequestLatency.Milliseconds} ms, Request Charge: {response.RequestCharge} RUs");
                 lt += response.RequestLatency.Milliseconds;
                 ru += response.RequestCharge;

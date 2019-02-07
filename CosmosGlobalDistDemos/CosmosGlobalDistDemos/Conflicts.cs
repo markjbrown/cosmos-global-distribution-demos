@@ -81,7 +81,7 @@ namespace CosmosGlobalDistDemos
         }
         public async Task Initalize()
         {
-
+            Console.WriteLine("MultiMaster Conflicts Initialize");
             //create the database
             await clients[0].CreateDatabaseIfNotExistsAsync(new Database { Id = databaseName });
             
@@ -205,7 +205,7 @@ namespace CosmosGlobalDistDemos
                 IList<Task<SampleCustomer>> tasks = new List<Task<SampleCustomer>>();
 
                 SampleCustomer item = await clients[0].ReadDocumentAsync<SampleCustomer>(insertedItem.SelfLink, requestOptions);
-                Console.WriteLine($"Original - ETag: {item.ETag}");
+                Console.WriteLine($"Original - Name: {item.Name}, City: {item.City}, UserDefId: {item.UserDefinedId}, Region: {item.Region}");
 
                 foreach (DocumentClient client in clients)
                 {
@@ -229,7 +229,7 @@ namespace CosmosGlobalDistDemos
             item.Region = ParseEndpoint(client.WriteEndpoint);
             item.UserDefinedId = RandomGen.Next(0, 1000);
 
-            Console.WriteLine($"Update - ETag: {item.ETag}");
+            Console.WriteLine($"Original - Name: {item.Name}, City: {item.City}, UserDefId: {item.UserDefinedId}, Region: {item.Region}");
 
             try
             {

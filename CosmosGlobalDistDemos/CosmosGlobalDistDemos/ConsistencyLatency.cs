@@ -103,6 +103,7 @@ namespace CosmosGlobalDistDemos
 
         public async Task Initalize()
         {
+            Console.WriteLine("Consistency/Latency Initialize");
             //Database definition
             Database database = new Database { Id = databaseName };
 

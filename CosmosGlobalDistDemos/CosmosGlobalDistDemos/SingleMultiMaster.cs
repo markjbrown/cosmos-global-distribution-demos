@@ -97,6 +97,7 @@ namespace CosmosGlobalDistDemos
         }
         public async Task Initalize()
         {
+            Console.WriteLine("Single/Multi Master Initialize");
             //Database definition
             Database database = new Database { Id = databaseName };
 

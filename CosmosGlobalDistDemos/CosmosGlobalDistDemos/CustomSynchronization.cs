@@ -99,6 +99,7 @@ namespace CosmosGlobalDistDemos
         }
         public async Task Initalize()
         {
+            Console.WriteLine("Custom Synchronization Initialize");
             //Database definition
             Database database = new Database { Id = databaseName };
 
@@ -187,13 +188,10 @@ namespace CosmosGlobalDistDemos
 
             PartitionKey partitionKeyValue = new PartitionKey(PartitionKeyValue);
 
-            //Stopwatch stopwatch = new Stopwatch();
-
             Console.WriteLine();
             for (i = 0; i < total; i++)
             {
                 SampleCustomer customer = customerGenerator.Generate();
-                //stopwatch.Start();
 
                     ResourceResponse<Document> writeResponse = await writeClient.CreateDocumentAsync(containerUri, customer);
 
@@ -206,9 +204,7 @@ namespace CosmosGlobalDistDemos
                         lt += readResponse.RequestLatency.Milliseconds;
                         ru += readResponse.RequestCharge;
 
-                //stopwatch.Stop();
                 Console.WriteLine($"Write/Read: Item {i} of {total}, Region: {writeRegion}, Latency: {lt} ms, Request Charge: {ru} RUs");
-                //stopwatch.Reset();
 
                 ltAgg += lt;
                 ruAgg += ru;
@@ -217,7 +213,7 @@ namespace CosmosGlobalDistDemos
             }
             results.Add(new ResultData
             {
-                Test = $"Test with Custom Synch",
+                Test = $"Test with Custom Synchronization",
                 AvgLatency = (ltAgg / total).ToString(),
                 AvgRU = Math.Round(ruAgg / total).ToString()
             });
