@@ -32,7 +32,6 @@ namespace CosmosGlobalDistDemos
         private DocumentClient clientStrong2kMiles; //West US 2 => East Us 2 (2000 miles)
 
         private List<ResultData> results;
-
         private Bogus.Faker<SampleCustomer> customerGenerator = new Bogus.Faker<SampleCustomer>().Rules((faker, customer) =>
             {
                 customer.Id = Guid.NewGuid().ToString();
@@ -87,20 +86,6 @@ namespace CosmosGlobalDistDemos
             Console.WriteLine($"Created DocumentClient with Strong consistency in: {region} replicating 2000 miles.");
             Console.WriteLine();
         }
-
-        public async Task RunDemo()
-        {
-            results = new List<ResultData>();
-
-            Console.WriteLine("Test Latency between Eventual Consistency vs Strong Consistency at 1000 and 2000 miles");
-            Console.WriteLine("-------------------------------------------------------------------------------------");
-            Console.WriteLine();
-
-            await WriteBenchmark(clientEventual, "1000 miles");
-            await WriteBenchmark(clientStrong1kMiles, "1000 miles");
-            await WriteBenchmark(clientStrong2kMiles, "2000 miles", true);
-        }
-
         public async Task Initalize()
         {
             Console.WriteLine("Consistency/Latency Initialize");
@@ -123,16 +108,35 @@ namespace CosmosGlobalDistDemos
             await clientStrong1kMiles.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container, options);
             await clientStrong2kMiles.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container, options);
         }
+        public async Task RunDemo()
+        {
+            try
+            {
+                results = new List<ResultData>();
 
+                Console.WriteLine("Test Latency between Eventual Consistency vs Strong Consistency at 1000 and 2000 miles");
+                Console.WriteLine("-------------------------------------------------------------------------------------");
+                Console.WriteLine();
+
+                await WriteBenchmark(clientEventual, "1000 miles");
+                await WriteBenchmark(clientStrong1kMiles, "1000 miles");
+                await WriteBenchmark(clientStrong2kMiles, "2000 miles", true);
+            }
+            catch (DocumentClientException dcx)
+            {
+                Console.WriteLine(dcx.Message);
+            }
+        }
         private async Task WriteBenchmark(DocumentClient client, string distance, bool final = false)
         {
+            Stopwatch stopwatch = new Stopwatch();
             int i = 0;
             int total = 100;
-            int lt = 0;
+            long lt = 0;
             double ru = 0;
 
             //Write tests for account with Eventual consistency
-            string region = ParseEndpoint(client.WriteEndpoint);
+            string region = Helpers.ParseEndpoint(client.WriteEndpoint);
             string consistency = client.ConsistencyLevel.ToString();
 
             Console.WriteLine();
@@ -143,10 +147,13 @@ namespace CosmosGlobalDistDemos
             for (i = 0; i < total; i++)
             {
                 SampleCustomer customer = customerGenerator.Generate();
-                ResourceResponse<Document> response = await client.CreateDocumentAsync(containerUri, customer);
-                Console.WriteLine($"Write: Item {i} of {total}, Region: {region}, Latency: {response.RequestLatency.Milliseconds} ms, Request Charge: {response.RequestCharge} RUs");
-                lt += response.RequestLatency.Milliseconds;
-                ru += response.RequestCharge;
+                stopwatch.Start();
+                    ResourceResponse<Document> response = await client.CreateDocumentAsync(containerUri, customer);
+                stopwatch.Stop();
+                Console.WriteLine($"Write: Item {i} of {total}, Region: {region}, Latency: {stopwatch.ElapsedMilliseconds} ms, Request Charge: {response.RequestCharge} RUs");
+                    lt += stopwatch.ElapsedMilliseconds;
+                    ru += response.RequestCharge;
+                stopwatch.Reset();
             }
             results.Add(new ResultData
                 {
@@ -180,7 +187,6 @@ namespace CosmosGlobalDistDemos
                 Console.ReadKey(true);
             }
         }
-
         public async Task CleanUp()
         {
             try
@@ -191,22 +197,5 @@ namespace CosmosGlobalDistDemos
             }
             catch {}
         }
-
-        private string ParseEndpoint(Uri endPoint)
-        {
-            string x = endPoint.ToString();
-
-            int tail = x.IndexOf(".documents.azure.com");
-            int head = x.LastIndexOf("-") + 1;
-
-            return x.Substring(head, (tail - head));
-        }
-    }
-
-    class ResultData
-    {
-        public string Test;
-        public string AvgLatency;
-        public string AvgRU;
     }
 }

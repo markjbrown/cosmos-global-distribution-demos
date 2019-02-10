@@ -91,6 +91,10 @@ namespace CosmosGlobalDistDemos
                     await singleMultiMaster.Initalize();
                     await conflicts.Initalize();
                     await customSync.Initalize();
+
+                    Console.WriteLine("Preloading data");
+                    await singleMultiRegion.LoadData();
+                    await singleMultiMaster.LoadData();
                 }
                 else if (result.KeyChar == '7')
                 {

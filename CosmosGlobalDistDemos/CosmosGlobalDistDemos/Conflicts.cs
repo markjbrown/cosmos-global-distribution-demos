@@ -123,13 +123,20 @@ namespace CosmosGlobalDistDemos
         }
         public async Task RunDemo()
         {
-            Console.WriteLine("Multi Master Conflict Resolution");
-            Console.WriteLine("--------------------------------");
-            await GenerateInsertConflicts(containerUriLWW);
-            await GenerateUpdateConflicts(containerUriNone);
+            try
+            {
+                Console.WriteLine("Multi Master Conflict Resolution");
+                Console.WriteLine("--------------------------------");
+                await GenerateInsertConflicts(containerUriLWW);
+                await GenerateUpdateConflicts(containerUriNone);
 
-            Console.WriteLine($"Test concluded. Press any key to continue\r\n...");
-            Console.ReadKey(true);
+                Console.WriteLine($"Test concluded. Press any key to continue\r\n...");
+                Console.ReadKey(true);
+            }
+            catch (DocumentClientException dcx)
+            {
+                Console.WriteLine(dcx.Message);
+            }
         }
         private async Task GenerateInsertConflicts(Uri collectionUri)
         {
@@ -157,9 +164,9 @@ namespace CosmosGlobalDistDemos
         private async Task<SampleCustomer> InsertItemAsync(DocumentClient client, Uri collectionUri, SampleCustomer item)
         {
             //Update UserDefinedId for each item to random number for Conflict Resolution
-            item.UserDefinedId = RandomGen.Next(0, 1000);
+            item.UserDefinedId = Helpers.RandomNext(0, 1000);
             //Update the write region to the client regions so we know which client wrote the item
-            item.Region = ParseEndpoint(client.WriteEndpoint);
+            item.Region = Helpers.ParseEndpoint(client.WriteEndpoint);
 
             Console.WriteLine($"Attempting insert - Name: {item.Name}, City: {item.City}, UserDefId: {item.UserDefinedId}, Region: {item.Region}");
 
@@ -223,13 +230,13 @@ namespace CosmosGlobalDistDemos
         private async Task<SampleCustomer> UpdateItemAsync(DocumentClient client, Uri collectionUri, SampleCustomer item)
         {
             //DeepCopy the item
-            item = Clone(item);
+            item = Helpers.Clone(item);
 
             //Make a change to the item to update.
-            item.Region = ParseEndpoint(client.WriteEndpoint);
-            item.UserDefinedId = RandomGen.Next(0, 1000);
+            item.Region = Helpers.ParseEndpoint(client.WriteEndpoint);
+            item.UserDefinedId = Helpers.RandomNext(0, 1000);
 
-            Console.WriteLine($"Original - Name: {item.Name}, City: {item.City}, UserDefId: {item.UserDefinedId}, Region: {item.Region}");
+            Console.WriteLine($"Update - Name: {item.Name}, City: {item.City}, UserDefId: {item.UserDefinedId}, Region: {item.Region}");
 
             try
             {
@@ -268,7 +275,7 @@ namespace CosmosGlobalDistDemos
             if (operations > 1)
             {
                 Console.WriteLine();
-                Console.WriteLine($"{operations} conflicts were generated. Confirm in Portal. Press any key to continue...");
+                Console.WriteLine($"Conflicts generated. Confirm in Portal. Press any key to continue...");
                 Console.WriteLine();
                 Console.ReadKey(true);
                 return true;
@@ -281,19 +288,6 @@ namespace CosmosGlobalDistDemos
             }
             return false;
         }
-        private static SampleCustomer Clone(SampleCustomer source)
-        {
-            return JsonConvert.DeserializeObject<SampleCustomer>(JsonConvert.SerializeObject(source));
-        }
-        private string ParseEndpoint(Uri endPoint)
-        {
-            string x = endPoint.ToString();
-
-            int tail = x.IndexOf(".documents.azure.com");
-            int head = x.LastIndexOf("-") + 1;
-
-            return x.Substring(head, (tail - head));
-        }
         public async Task CleanUp()
         {
             try
@@ -301,34 +295,6 @@ namespace CosmosGlobalDistDemos
                 await clients[0].DeleteDatabaseAsync(databaseUri);
             }
             catch { }
-        }
-        private static class RandomGen
-        {
-            private static Random _global = new Random();
-            [ThreadStatic]
-            private static Random _local;
-            public static int Next()
-            {
-                Random inst = _local;
-                if (inst == null)
-                {
-                    int seed;
-                    lock (_global) seed = _global.Next();
-                    _local = inst = new Random(seed);
-                }
-                return inst.Next();
-            }
-            public static int Next(int minValue, int maxValue)
-            {
-                Random inst = _local;
-                if (inst == null)
-                {
-                    int seed;
-                    lock (_global) seed = _global.Next(minValue, maxValue);
-                    _local = inst = new Random(seed);
-                }
-                return inst.Next(minValue, maxValue);
-            }
         }
     }
 }

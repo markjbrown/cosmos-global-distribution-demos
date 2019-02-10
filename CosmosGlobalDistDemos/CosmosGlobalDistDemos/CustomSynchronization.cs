@@ -30,7 +30,6 @@ namespace CosmosGlobalDistDemos
         private DocumentClient strongClient;
 
         private List<ResultData> results;
-
         private Bogus.Faker<SampleCustomer> customerGenerator = new Bogus.Faker<SampleCustomer>().Rules((faker, customer) =>
         {
             customer.Id = Guid.NewGuid().ToString();
@@ -41,6 +40,7 @@ namespace CosmosGlobalDistDemos
             customer.MyPartitionKey = ConfigurationManager.AppSettings["PartitionKeyValue"];
             customer.UserDefinedId = faker.Random.Int(0, 1000);
         });
+
         public CustomSynchronization()
         {
             string endpoint, key, writeRegion, readRegion;
@@ -116,26 +116,35 @@ namespace CosmosGlobalDistDemos
             //Create the container for all accounts
             await writeClient.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container, options);
             await strongClient.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container, options);
-        }
+    }
         public async Task RunDemo()
         {
-            results = new List<ResultData>();
+            try
+            {
+                results = new List<ResultData>();
 
-            Console.WriteLine("Test Latency between Strong Consistency all regions vs. single region");
-            Console.WriteLine("---------------------------------------------------------------------");
-            Console.WriteLine();
+                Console.WriteLine("Test Latency between Strong Consistency all regions vs. single region");
+                Console.WriteLine("---------------------------------------------------------------------");
+                Console.WriteLine();
 
-            await WriteBenchmarkStrong(strongClient);
-            await WriteBenchmarkCustomSync(writeClient, readClient);
+                await WriteBenchmarkStrong(strongClient);
+                await WriteBenchmarkCustomSync(writeClient, readClient);
+            }
+            catch (DocumentClientException dcx)
+            {
+                Console.WriteLine(dcx.Message);
+            }
         }
         private async Task WriteBenchmarkStrong(DocumentClient client)
         {
+            Stopwatch stopwatch = new Stopwatch();
+
             int i = 0;
             int total = 100;
-            int lt = 0;
+            long lt = 0;
             double ru = 0;
 
-            string region = ParseEndpoint(client.WriteEndpoint);
+            string region = Helpers.ParseEndpoint(client.WriteEndpoint);
             string consistency = client.ConsistencyLevel.ToString();
 
             Console.WriteLine($"Test {total} writes account in {region} with {consistency} consistency between all replicas. \r\nPress any key to continue\r\n...");
@@ -145,14 +154,16 @@ namespace CosmosGlobalDistDemos
             for (i = 0; i < total; i++)
             {
                 SampleCustomer customer = customerGenerator.Generate();
+                stopwatch.Start();
                 ResourceResponse<Document> response = await client.CreateDocumentAsync(containerUri, customer);
-                Console.WriteLine($"Write: Item {i} of {total}, Region: {region}, Latency: {response.RequestLatency.Milliseconds} ms, Request Charge: {response.RequestCharge} RUs");
-                lt += response.RequestLatency.Milliseconds;
+                stopwatch.Stop();
+                Console.WriteLine($"Write: Item {i} of {total}, Region: {region}, Latency: {stopwatch.ElapsedMilliseconds} ms, Request Charge: {response.RequestCharge} RUs");
+                lt += stopwatch.ElapsedMilliseconds;
                 ru += response.RequestCharge;
             }
             results.Add(new ResultData
             {
-                Test = $"Test with {consistency} Consistency",
+                Test = $"Test with all {consistency} Consistency",
                 AvgLatency = (lt / total).ToString(),
                 AvgRU = Math.Round(ru / total).ToString()
             });
@@ -170,16 +181,17 @@ namespace CosmosGlobalDistDemos
         }
         private async Task WriteBenchmarkCustomSync(DocumentClient writeClient, DocumentClient readClient)
         {
+            Stopwatch stopwatch = new Stopwatch();
+
             int i = 0;
             int total = 100;
-            int lt = 0;
+            long lt = 0;
             double ru = 0;
-            int ltAgg = 0;
+            long ltAgg = 0;
             double ruAgg = 0;
 
-
-            string writeRegion = ParseEndpoint(writeClient.WriteEndpoint);
-            string readRegion = ParseEndpoint(readClient.ReadEndpoint);
+            string writeRegion = Helpers.ParseEndpoint(writeClient.WriteEndpoint);
+            string readRegion = Helpers.ParseEndpoint(readClient.ReadEndpoint);
             string consistency = writeClient.ConsistencyLevel.ToString();
 
             Console.WriteLine();
@@ -193,17 +205,20 @@ namespace CosmosGlobalDistDemos
             {
                 SampleCustomer customer = customerGenerator.Generate();
 
+                stopwatch.Start();
                     ResourceResponse<Document> writeResponse = await writeClient.CreateDocumentAsync(containerUri, customer);
-
-                        lt += writeResponse.RequestLatency.Milliseconds;
+                stopwatch.Stop();
+                        lt += stopwatch.ElapsedMilliseconds;
                         ru += writeResponse.RequestCharge;
+                stopwatch.Reset();
 
+                stopwatch.Start();
                     ResourceResponse<Document> readResponse = await readClient.ReadDocumentAsync(writeResponse.Resource.SelfLink, 
                         new RequestOptions { PartitionKey = partitionKeyValue, SessionToken = writeResponse.SessionToken});
-
-                        lt += readResponse.RequestLatency.Milliseconds;
+                stopwatch.Stop();
+                        lt += stopwatch.ElapsedMilliseconds;
                         ru += readResponse.RequestCharge;
-
+                stopwatch.Reset();
                 Console.WriteLine($"Write/Read: Item {i} of {total}, Region: {writeRegion}, Latency: {lt} ms, Request Charge: {ru} RUs");
 
                 ltAgg += lt;
@@ -248,15 +263,6 @@ namespace CosmosGlobalDistDemos
                 await strongClient.DeleteDatabaseAsync(databaseUri);
             }
             catch { }
-        }
-        private string ParseEndpoint(Uri endPoint)
-        {
-            string x = endPoint.ToString();
-
-            int tail = x.IndexOf(".documents.azure.com");
-            int head = x.LastIndexOf("-") + 1;
-
-            return x.Substring(head, (tail - head));
         }
     }
 }

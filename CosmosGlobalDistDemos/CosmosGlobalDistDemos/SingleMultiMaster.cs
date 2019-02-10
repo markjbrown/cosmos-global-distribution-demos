@@ -6,6 +6,7 @@ using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.IO;
 
 namespace CosmosGlobalDistDemos
 {
@@ -21,17 +22,17 @@ namespace CosmosGlobalDistDemos
     {
         private string databaseName;
         private string containerName;
+        private string storedProcName;
         private Uri databaseUri;
         private Uri containerUri;
+        private Uri storedProcUri;
         private string PartitionKeyProperty = ConfigurationManager.AppSettings["PartitionKeyProperty"];
         private string PartitionKeyValue = ConfigurationManager.AppSettings["PartitionKeyValue"];
         private DocumentClient clientSingle;
         private DocumentClient clientMulti;
 
         private List<ResultData> results;
-
-        private Bogus.Faker<SampleCustomer> customerGenerator = new Bogus.Faker<SampleCustomer>().Rules(
-            (faker, customer) =>
+        private Bogus.Faker<SampleCustomer> customerGenerator = new Bogus.Faker<SampleCustomer>().Rules((faker, customer) =>
             {
                 customer.Id = Guid.NewGuid().ToString();
                 customer.Name = faker.Name.FullName();
@@ -40,19 +41,18 @@ namespace CosmosGlobalDistDemos
                 customer.PostalCode = faker.Person.Address.ZipCode.ToString();
                 customer.MyPartitionKey = ConfigurationManager.AppSettings["PartitionKeyValue"];
                 customer.UserDefinedId = faker.Random.Int(0, 1000);
-            }
-        );
+            });
 
         public SingleMultiMaster()
         {
             string endpoint, key, region;
 
-            //Database and Container definitions for Single and Multi-Master accounts
             databaseName = ConfigurationManager.AppSettings["database"];
             containerName = ConfigurationManager.AppSettings["container"];
-
+            storedProcName = ConfigurationManager.AppSettings["storedproc"];
             databaseUri = UriFactory.CreateDatabaseUri(databaseName);
             containerUri = UriFactory.CreateDocumentCollectionUri(databaseName, containerName);
+            storedProcUri = UriFactory.CreateStoredProcedureUri(databaseName, containerName, storedProcName);
 
             Console.WriteLine($"Single-Master vs Multi-Master Latency");
             Console.WriteLine("--------------------------------------");
@@ -97,70 +97,89 @@ namespace CosmosGlobalDistDemos
         }
         public async Task Initalize()
         {
-            Console.WriteLine("Single/Multi Master Initialize");
-            //Database definition
-            Database database = new Database { Id = databaseName };
+            try
+            { 
+                Console.WriteLine("Single/Multi Master Initialize");
+                //Database definition
+                Database database = new Database { Id = databaseName };
 
-            //Container properties
-            PartitionKeyDefinition partitionKeyDefinition = new PartitionKeyDefinition();
-            partitionKeyDefinition.Paths.Add(PartitionKeyProperty);
-            RequestOptions options = new RequestOptions { OfferThroughput = 1000,  };
+                //Container properties
+                PartitionKeyDefinition partitionKeyDefinition = new PartitionKeyDefinition();
+                partitionKeyDefinition.Paths.Add(PartitionKeyProperty);
+                RequestOptions options = new RequestOptions { OfferThroughput = 1000,  };
 
-            //Container definition
-            DocumentCollection container = new DocumentCollection { Id = containerName, PartitionKey = partitionKeyDefinition };
-            
+                //Container definition
+                DocumentCollection container = new DocumentCollection { Id = containerName, PartitionKey = partitionKeyDefinition };
 
-            //Single-Master
-            await clientSingle.CreateDatabaseIfNotExistsAsync(database);
-            await clientSingle.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container, options);
-        
-            //Multi-Master
-            await clientMulti.CreateDatabaseIfNotExistsAsync(database);
-            await clientMulti.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container, options);
+                //Stored Procedure definition
+                StoredProcedure spBulkUpload = new StoredProcedure
+                {
+                    Id = "spBulkUpload",
+                    Body = File.ReadAllText($@"spBulkUpload.js")
+                };
 
-            //Pre-Load data
-            await Populate(clientSingle, "Single-Master");
-            await Populate(clientMulti, "Multi-Master");
+                //Single-Master
+                await clientSingle.CreateDatabaseIfNotExistsAsync(database);
+                await clientSingle.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container, options);
+                await clientSingle.CreateStoredProcedureAsync(containerUri, spBulkUpload);
+
+                //Multi-Master
+                await clientMulti.CreateDatabaseIfNotExistsAsync(database);
+                await clientMulti.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container, options);
+                await clientMulti.CreateStoredProcedureAsync(containerUri, spBulkUpload);
+            }
+            catch(DocumentClientException dcx)
+            {
+                Console.WriteLine(dcx.Message);
+            }
         }
-        private async Task Populate(DocumentClient client, string accountType)
+        public async Task LoadData()
         {
-            var sql = "SELECT * FROM c";
+            //Pre-Load data
+            await Populate(clientSingle);
+            await Populate(clientMulti);
+        }
+        private async Task Populate(DocumentClient client)
+        {
+            List<SampleCustomer> sampleCustomers = customerGenerator.Generate(100);
 
-            FeedOptions feedOptions = new FeedOptions
+            int inserted = 0;
+
+            RequestOptions options = new RequestOptions
             {
                 PartitionKey = new PartitionKey(PartitionKeyValue)
             };
 
-            var documents = client.CreateDocumentQuery(containerUri, sql, feedOptions).ToList();
-            if (documents.Count == 0)
+            while (inserted < sampleCustomers.Count)
             {
-                Console.WriteLine($"Populating {accountType} container for Read-Latency Test");
-                for (int i = 0; i < 100; i++)
-                {
-                    SampleCustomer customer = customerGenerator.Generate();
-                    await client.CreateDocumentAsync(containerUri, customer);
-                }
-                Console.WriteLine("Populating complete");
+                StoredProcedureResponse<int> result = await client.ExecuteStoredProcedureAsync<int>(storedProcUri, options, sampleCustomers.Skip(inserted));
+                inserted += result.Response;
+                Console.WriteLine($"Inserted {inserted} items.");
             }
         }
-
         public async Task RunDemo()
         {
-            results = new List<ResultData>();
+            try
+            {
+                results = new List<ResultData>();
 
-            Console.WriteLine($"Test read and write latency between a Single-Master and Multi-Master account");
-            Console.WriteLine("-----------------------------------------------------------------------------");
-            Console.WriteLine();
+                Console.WriteLine($"Test read and write latency between a Single-Master and Multi-Master account");
+                Console.WriteLine("-----------------------------------------------------------------------------");
+                Console.WriteLine();
 
-            await ReadBenchmark(clientSingle, "Single-Master");
-            await WriteBenchmark(clientSingle, "Single-Master");
-            await ReadBenchmark(clientMulti, "Multi-Master");
-            await WriteBenchmark(clientMulti, "Multi-Master", true);
+                await ReadBenchmark(clientSingle, "Single-Master");
+                await WriteBenchmark(clientSingle, "Single-Master");
+                await ReadBenchmark(clientMulti, "Multi-Master");
+                await WriteBenchmark(clientMulti, "Multi-Master", true);
+            }
+            catch (DocumentClientException dcx)
+            {
+                Console.WriteLine(dcx.Message);
+            }
         }
-
         private async Task ReadBenchmark(DocumentClient client, string accountType, bool final = false)
         {
-            string region = ParseEndpoint(client.ReadEndpoint);
+            string region = Helpers.ParseEndpoint(client.ReadEndpoint);
             Stopwatch stopwatch = new Stopwatch();
 
             FeedOptions feedOptions = new FeedOptions
@@ -172,8 +191,7 @@ namespace CosmosGlobalDistDemos
 
             int i = 0;
             int total = items.Count;
-            long ms = 0;
-            int lt = 0;
+            long lt = 0;
             double ru = 0;
 
             Console.WriteLine();
@@ -190,9 +208,8 @@ namespace CosmosGlobalDistDemos
                 stopwatch.Start();
                     ResourceResponse<Document> response = await client.ReadDocumentAsync(item.SelfLink, requestOptions);
                 stopwatch.Stop();
-                Console.WriteLine($"Read {i} of {total}, region: {region}, Latency: {response.RequestLatency.Milliseconds} ms, Request Charge: {response.RequestCharge} RUs");
-                ms += stopwatch.ElapsedMilliseconds;
-                lt += response.RequestLatency.Milliseconds;
+                Console.WriteLine($"Read {i} of {total}, region: {region}, Latency: {stopwatch.ElapsedMilliseconds} ms, Request Charge: {response.RequestCharge} RUs");
+                lt += stopwatch.ElapsedMilliseconds;
                 ru += response.RequestCharge;
                 i++;
                 stopwatch.Reset();
@@ -228,15 +245,14 @@ namespace CosmosGlobalDistDemos
                 Console.ReadKey(true);
             }
         }
-
         private async Task WriteBenchmark(DocumentClient client, string accountType, bool final = false)
         {
-            string region = ParseEndpoint(client.WriteEndpoint);
+            string region = Helpers.ParseEndpoint(client.WriteEndpoint);
             Stopwatch stopwatch = new Stopwatch();
 
             int i = 0;
             int total = 100;
-            int lt = 0;
+            long lt = 0;
             double ru = 0;
 
             Console.WriteLine();
@@ -249,8 +265,8 @@ namespace CosmosGlobalDistDemos
                 stopwatch.Start();
                     ResourceResponse<Document> response = await client.CreateDocumentAsync(containerUri, customer);
                 stopwatch.Stop();
-                Console.WriteLine($"Write {i} of {total}, to region: {region}, Latency: {response.RequestLatency.Milliseconds} ms, Request Charge: {response.RequestCharge} RUs");
-                lt += response.RequestLatency.Milliseconds;
+                Console.WriteLine($"Write {i} of {total}, to region: {region}, Latency: {stopwatch.ElapsedMilliseconds} ms, Request Charge: {response.RequestCharge} RUs");
+                lt += stopwatch.ElapsedMilliseconds;
                 ru += response.RequestCharge;
                 stopwatch.Reset();
             }
@@ -285,7 +301,6 @@ namespace CosmosGlobalDistDemos
                 Console.ReadKey(true);
             }
         }
-
         public async Task CleanUp()
         {
             try
@@ -294,16 +309,6 @@ namespace CosmosGlobalDistDemos
                 await clientMulti.DeleteDatabaseAsync(databaseUri);
             }
             catch { }
-        }
-
-        private string ParseEndpoint(Uri endPoint)
-        {
-            string x = endPoint.ToString();
-
-            int tail = x.IndexOf(".documents.azure.com");
-            int head = x.LastIndexOf("-") + 1;
-
-            return x.Substring(head, (tail - head));
         }
     }
 }
