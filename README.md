@@ -2,7 +2,27 @@
 
 ## Introduction
 
-This solution contains a series of benchmarks that demonstrate various concepts for distributed databases, particularly around consistency, latency and distance. It also demonstrates the latency differences between single-master and multi-master databases, conflict resolution for multi-master databases and also how to implement custom synchronization in which you can have all regions at a lower level of consistency but have two regions strongly consistent, providing greater data durability but with less impact on latency.
+This solution contains a series of benchmarks that demonstrate various concepts for distributed databases, particularly around consistency, latency and distance. The tests in this solution include:
+
+### 1. Read latency between single region and multi-region replicated accounts
+
+This test shows the difference in read latency for an account with a single master in SouthEast Asia region with a front end reading from it in West US 2. The next test shows the drastic improvement in latency with data locality when the account is replicated to West US 2.
+
+### 2. Write latency for accounts with Eventual consistency vs. Strong consistency + impact of distance on Strong consistency
+
+This test shows the difference in write latency for two accounts with replicas 1000 miles apart in West US 2 and Central US regions, one with Eventual consistency, the other with Strong consistency. There is a third test that shows the impact on latency when the distance between the regions is more than double the distance, demonstrating the speed of light impact on latency when using Strong consistency across large distances.
+
+### 3. Write latency for Single-Master account versus Multi-Master account
+
+This test shows the difference in write latency for a single-master account (master: East US 2, replica: West US 2) with a client in West US 2. The next test shows the impact on write latency when using a multi-master account (master: East US 2, West US 2) with a client in West US 2.
+
+### 4. Multi-Master Conflict Resolution
+
+This test shows the Last Write Wins conflict resolution mode as well as Async mode where any conflicts are written to the Conflicts Feed.
+
+### 5. Custom Synchronization
+
+This test shows how to implement a custom synchronization between two regions. This allows you to have a lower level of consistency for a database with many replicas across great distances. This scenario shows an account with four regions (West US, West US 2, East US, East US 2) at Session level consistency but with Strong consistency between West US and West US 2. This provides for greater data durability (RPO = 0) without having to use Strong consistency across all regions and over very large distances.
 
 ## Provisioning Cosmos DB accounts
 
