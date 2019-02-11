@@ -7,22 +7,31 @@ This solution contains a series of benchmarks that demonstrate various concepts 
 ## Provisioning Cosmos DB accounts
 
 This solution requires nine different Cosmos DB accounts. Each of are configured differently to support the underlying test with different replication modes, consistency levels and regions.
-To simplify this process, there is a Bash script which uses Azure CLI to provision all of the accounts called, "global-dist-demos.sh" in this solution. To prepare the Cosmos accounts for this solution, follow the steps below.
+To simplify this process, the `global-dist-demos.sh` bash script provisions all the accounts using Azure CLI. 
+
+To prepare the Cosmos accounts for this solution, follow the steps below.
 
 ### Steps
 
 - Open Azure Portal and login to your account
 - Ensure the Directory + subscription (under your login top right) you want to create these accounts is selected
 - Launch Bash in Azure Cloud Shell
-- Upload 'global-dist-demos.sh'
-- Type 'bash global-dist-demos.sh'
+- Upload `global-dist-demos.sh`
+- Type `bash global-dist-demos.sh`
 - Follow the prompts
 
-This script can take about 40+ minutes to run and can go some time with no apparent activity. When it is complete it will output all of the Cosmos DB endpoints and keys you will need in this solution's app.config. It is recommended to copy these to a file or someplace secure after the script completes.
+This script can take about 40+ minutes to run and can go some time with no apparent activity. 
+
+When complete it will output all of the Cosmos DB endpoints and keys you will need in this solution's app.config. You may want to copy these to a file or someplace secure after the script completes.
 
 ## Provision Windows VM as Host
 
-These tests are designed to run from a Windows VM in West US 2. You will need to provision a Windows VM (Standard B4ms (4 vcpus, 16 GB memory)) with RDP enabled. After the VM has been provisioned, RDP into it and install Visual Studio 2017, then copy the solution folder to the VM. To run the demo, RDP into the VM, open the solution folder, launch the solution and press F5.
+These tests are designed to run from a Windows VM in West US 2. You will need to provision a Windows VM (Standard B4ms (4 vcpus, 16 GB memory)) with RDP enabled. After the VM has been provisioned, RDP into it and install Visual Studio 2017, then copy the solution folder to the VM, or connect VS to your forked repo and clone it locally to the VM. 
+
+To run the demo, RDP into the VM, open the solution folder, launch the solution and press F5.
+
+[!Note]
+> You can run this demo from your local machine however the latency benchmarks will be dramatically slower and will not show actual, SLA-based Cosmos DB latency metrics.
 
 ## Initializing the Demos
 
