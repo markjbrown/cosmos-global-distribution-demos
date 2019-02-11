@@ -14,7 +14,7 @@ namespace CosmosGlobalDistDemos
     * Resources needed for this demo:
     * 
     *   Custom => Cosmos DB account: Replication: Multi-Master, Write Region: West US 2, East US 2, West US, East US, Consistency: Session
-    *   Strong => Cosmos DB account: Replication: Multi-Master, Write Region: West US 2, East US 2, West US, East US, Consistency: Session
+    *   Strong => Cosmos DB account: Replication: Multi-Master, Write Region: West US 2, East US 2, West US, East US, Consistency: Strong
     *   
 */
     public class CustomSynchronization
@@ -103,19 +103,21 @@ namespace CosmosGlobalDistDemos
             //Database definition
             Database database = new Database { Id = databaseName };
 
-            //Container definition
+            //Throughput - RUs
             RequestOptions options = new RequestOptions { OfferThroughput = 1000 };
+
+            //Container definition
             PartitionKeyDefinition partitionKeyDefinition = new PartitionKeyDefinition();
             partitionKeyDefinition.Paths.Add(PartitionKeyProperty);
             DocumentCollection container = new DocumentCollection { Id = containerName, PartitionKey = partitionKeyDefinition };
 
             //create the database for all accounts
-            await writeClient.CreateDatabaseIfNotExistsAsync(database);
-            await strongClient.CreateDatabaseIfNotExistsAsync(database);
+            await writeClient.CreateDatabaseIfNotExistsAsync(database, options);
+            await strongClient.CreateDatabaseIfNotExistsAsync(database, options);
 
             //Create the container for all accounts
-            await writeClient.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container, options);
-            await strongClient.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container, options);
+            await writeClient.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container);
+            await strongClient.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container);
     }
         public async Task RunDemo()
         {

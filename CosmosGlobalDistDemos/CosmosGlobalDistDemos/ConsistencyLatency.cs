@@ -92,21 +92,23 @@ namespace CosmosGlobalDistDemos
             //Database definition
             Database database = new Database { Id = databaseName };
 
-            //Container definition
+            //Throughput - RUs
             RequestOptions options = new RequestOptions { OfferThroughput = 1000 };
+
+            //Container definition
             PartitionKeyDefinition partitionKeyDefinition = new PartitionKeyDefinition();
             partitionKeyDefinition.Paths.Add(PartitionKeyProperty);
             DocumentCollection container = new DocumentCollection { Id = containerName, PartitionKey = partitionKeyDefinition };
 
             //create the database for all three accounts
-            await clientEventual.CreateDatabaseIfNotExistsAsync(database);
-            await clientStrong1kMiles.CreateDatabaseIfNotExistsAsync(database);
-            await clientStrong2kMiles.CreateDatabaseIfNotExistsAsync(database);
+            await clientEventual.CreateDatabaseIfNotExistsAsync(database, options);
+            await clientStrong1kMiles.CreateDatabaseIfNotExistsAsync(database, options);
+            await clientStrong2kMiles.CreateDatabaseIfNotExistsAsync(database, options);
 
             //Create the container for all three accounts
-            await clientEventual.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container, options);
-            await clientStrong1kMiles.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container, options);
-            await clientStrong2kMiles.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container, options);
+            await clientEventual.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container);
+            await clientStrong1kMiles.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container);
+            await clientStrong2kMiles.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container);
         }
         public async Task RunDemo()
         {

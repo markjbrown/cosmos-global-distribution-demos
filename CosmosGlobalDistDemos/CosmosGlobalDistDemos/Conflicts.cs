@@ -82,14 +82,19 @@ namespace CosmosGlobalDistDemos
         public async Task Initalize()
         {
             Console.WriteLine("MultiMaster Conflicts Initialize");
+
+            //Database definition
+            Database database = new Database { Id = databaseName };
+
+            //Throughput - RUs
+            RequestOptions options = new RequestOptions { OfferThroughput = 1000 };
+
             //create the database
-            await clients[0].CreateDatabaseIfNotExistsAsync(new Database { Id = databaseName });
+            await clients[0].CreateDatabaseIfNotExistsAsync(database, options);
             
             //Shared Container properties
-            RequestOptions options = new RequestOptions { OfferThroughput = 1000 };
             PartitionKeyDefinition partitionKeyDefinition = new PartitionKeyDefinition();
             partitionKeyDefinition.Paths.Add(PartitionKeyProperty);
-
 
             //Conflict Policy for Container using Last Writer Wins Conflict Policy
             ConflictResolutionPolicy lastWriterWinsPolicy = new ConflictResolutionPolicy
@@ -104,7 +109,7 @@ namespace CosmosGlobalDistDemos
                 PartitionKey = partitionKeyDefinition,
                 ConflictResolutionPolicy = lastWriterWinsPolicy
             };
-            await clients[0].CreateDocumentCollectionIfNotExistsAsync(databaseUri, containerLwwPolicy, options);
+            await clients[0].CreateDocumentCollectionIfNotExistsAsync(databaseUri, containerLwwPolicy);
             
 
             //Conflict Policy for Container with no Policy and writing to Conflicts Feed
@@ -119,7 +124,7 @@ namespace CosmosGlobalDistDemos
                 PartitionKey = partitionKeyDefinition,
                 ConflictResolutionPolicy = policyNone
             };
-            await clients[0].CreateDocumentCollectionIfNotExistsAsync(databaseUri, containerNoPolicy, options);
+            await clients[0].CreateDocumentCollectionIfNotExistsAsync(databaseUri, containerNoPolicy);
         }
         public async Task RunDemo()
         {

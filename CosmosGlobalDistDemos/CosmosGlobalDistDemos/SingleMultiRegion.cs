@@ -100,8 +100,10 @@ namespace CosmosGlobalDistDemos
                 //Database definition
                 Database database = new Database { Id = databaseName };
 
-                //Container definition
+                //Throughput - RUs
                 RequestOptions options = new RequestOptions { OfferThroughput = 1000 };
+
+                //Container definition
                 PartitionKeyDefinition partitionKeyDefinition = new PartitionKeyDefinition();
                 partitionKeyDefinition.Paths.Add(PartitionKeyProperty);
                 DocumentCollection container = new DocumentCollection { Id = containerName, PartitionKey = partitionKeyDefinition };
@@ -115,17 +117,17 @@ namespace CosmosGlobalDistDemos
 
                 //Single Region
                 //create the database
-                await clientSingle.CreateDatabaseIfNotExistsAsync(database);
+                await clientSingle.CreateDatabaseIfNotExistsAsync(database, options);
                 //Create the container
-                await clientSingle.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container, options);
+                await clientSingle.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container);
                 //Create the stored procedure
                 await clientSingle.CreateStoredProcedureAsync(containerUri, spBulkUpload);
 
                 //Multi Region
                 //create the database
-                await clientMulti.CreateDatabaseIfNotExistsAsync(database);
+                await clientMulti.CreateDatabaseIfNotExistsAsync(database, options);
                 //Create the container
-                await clientMulti.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container, options);
+                await clientMulti.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container);
                 //Create the stored procedure
                 await clientMulti.CreateStoredProcedureAsync(containerUri, spBulkUpload);                
             }

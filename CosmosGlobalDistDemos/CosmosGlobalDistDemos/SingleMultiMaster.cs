@@ -14,8 +14,8 @@ namespace CosmosGlobalDistDemos
     /*
      * Resources needed for this demo:
      * 
-     *   Single Master => Cosmos DB account: Replication: Single-Master, Write Region: East US 2, Read Region: West US 2, Consistency: Session
-     *   Multi-Master => Cosmos DB account: Replication: Multi-Master, Write Region: East US 2, West US 2, North Europe, Consistency: Session
+     *   Single Master => Cosmos DB account: Replication: Single-Master, Write Region: East US 2, Read Region: West US 2, Consistency: Eventual
+     *   Multi-Master => Cosmos DB account: Replication: Multi-Master, Write Region: East US 2, West US 2, North Europe, Consistency: Eventual
      *   
     */
     class SingleMultiMaster
@@ -103,10 +103,12 @@ namespace CosmosGlobalDistDemos
                 //Database definition
                 Database database = new Database { Id = databaseName };
 
+                //Throughput - RUs
+                RequestOptions options = new RequestOptions { OfferThroughput = 1000 };
+
                 //Container properties
                 PartitionKeyDefinition partitionKeyDefinition = new PartitionKeyDefinition();
                 partitionKeyDefinition.Paths.Add(PartitionKeyProperty);
-                RequestOptions options = new RequestOptions { OfferThroughput = 1000,  };
 
                 //Container definition
                 DocumentCollection container = new DocumentCollection { Id = containerName, PartitionKey = partitionKeyDefinition };
@@ -119,13 +121,13 @@ namespace CosmosGlobalDistDemos
                 };
 
                 //Single-Master
-                await clientSingle.CreateDatabaseIfNotExistsAsync(database);
-                await clientSingle.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container, options);
+                await clientSingle.CreateDatabaseIfNotExistsAsync(database, options);
+                await clientSingle.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container);
                 await clientSingle.CreateStoredProcedureAsync(containerUri, spBulkUpload);
 
-                //Multi-Master
-                await clientMulti.CreateDatabaseIfNotExistsAsync(database);
-                await clientMulti.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container, options);
+                //Multi-Master (For multi-master, define DB throughput as there are 3 containers)
+                await clientMulti.CreateDatabaseIfNotExistsAsync(database, options);
+                await clientMulti.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container);
                 await clientMulti.CreateStoredProcedureAsync(containerUri, spBulkUpload);
             }
             catch(DocumentClientException dcx)
