@@ -27,10 +27,12 @@ namespace CosmosGlobalDistDemos
         private List<DocumentClient> clients;
         private string databaseName;
         private Uri databaseUri;
-        private string containerNameLwwPolicy;
-        private Uri containerUriLWW;
-        private string containerNameNoPolicy;
-        private Uri containerUriNone;
+        private string lwwContainerName;
+        private Uri lwwContainerUri;
+        private string udpContainerName;
+        private Uri udpContainerUri;
+        private string noneContainerName;
+        private Uri noneContainerUri;
         private string PartitionKeyProperty = ConfigurationManager.AppSettings["PartitionKeyProperty"];
         private string PartitionKeyValue = ConfigurationManager.AppSettings["PartitionKeyValue"];
 
@@ -48,12 +50,14 @@ namespace CosmosGlobalDistDemos
         public Conflicts()
         {
             databaseName = ConfigurationManager.AppSettings["database"];
-            containerNameLwwPolicy = ConfigurationManager.AppSettings["LwwPolicyContainer"];
-            containerNameNoPolicy = ConfigurationManager.AppSettings["NoPolicyContainer"];
+            lwwContainerName = ConfigurationManager.AppSettings["LwwPolicyContainer"];
+            udpContainerName = ConfigurationManager.AppSettings["UdpPolicyContainer"];
+            noneContainerName = ConfigurationManager.AppSettings["NoPolicyContainer"];
 
             databaseUri = UriFactory.CreateDatabaseUri(databaseName);
-            containerUriLWW = UriFactory.CreateDocumentCollectionUri(databaseName, containerNameLwwPolicy);
-            containerUriNone = UriFactory.CreateDocumentCollectionUri(databaseName, containerNameNoPolicy);
+            lwwContainerUri = UriFactory.CreateDocumentCollectionUri(databaseName, lwwContainerName);
+            udpContainerUri = UriFactory.CreateDocumentCollectionUri(databaseName, udpContainerName);
+            noneContainerUri = UriFactory.CreateDocumentCollectionUri(databaseName, noneContainerName);
 
             Console.WriteLine("Multi Master: Conflict Resolution");
             Console.WriteLine("---------------------------------");
@@ -96,35 +100,60 @@ namespace CosmosGlobalDistDemos
             PartitionKeyDefinition partitionKeyDefinition = new PartitionKeyDefinition();
             partitionKeyDefinition.Paths.Add(PartitionKeyProperty);
 
-            //Conflict Policy for Container using Last Writer Wins Conflict Policy
-            ConflictResolutionPolicy lastWriterWinsPolicy = new ConflictResolutionPolicy
+            //Conflict Policy for Container using Last Writer Wins
+            ConflictResolutionPolicy lwwPolicy = new ConflictResolutionPolicy
             {
                 Mode = ConflictResolutionMode.LastWriterWins,
                 ConflictResolutionPath = "/userDefinedId"
             };
 
-            DocumentCollection containerLwwPolicy = new DocumentCollection
+            DocumentCollection containerLww = new DocumentCollection
             {
-                Id = containerNameLwwPolicy,
+                Id = lwwContainerName,
                 PartitionKey = partitionKeyDefinition,
-                ConflictResolutionPolicy = lastWriterWinsPolicy
+                ConflictResolutionPolicy = lwwPolicy
             };
-            await clients[0].CreateDocumentCollectionIfNotExistsAsync(databaseUri, containerLwwPolicy);
-            
+            await clients[0].CreateDocumentCollectionIfNotExistsAsync(databaseUri, containerLww);
+
+            //Conflict Policy for Container with User-Defined Stored Procedure
+            ConflictResolutionPolicy udpPolicy = new ConflictResolutionPolicy
+            {
+                Mode = ConflictResolutionMode.Custom,
+                ConflictResolutionProcedure = "spConflictUDP"
+            };
+
+            DocumentCollection containerUdp = new DocumentCollection
+            {
+                Id = udpContainerName,
+                PartitionKey = partitionKeyDefinition,
+                ConflictResolutionPolicy = udpPolicy
+            };
+            await clients[0].CreateDocumentCollectionIfNotExistsAsync(databaseUri, containerUdp);
+
+            //Stored Procedure definition
+            StoredProcedure spConflictUdp = new StoredProcedure
+            {
+                Id = "spConflictUDP",
+                Body = File.ReadAllText($@"spConflictUDP.js")
+            };
+
+            //Create the Conflict Resolution stored procedure
+            await clients[0].CreateStoredProcedureAsync(udpContainerUri, spConflictUdp);
+
 
             //Conflict Policy for Container with no Policy and writing to Conflicts Feed
-            ConflictResolutionPolicy policyNone = new ConflictResolutionPolicy
+            ConflictResolutionPolicy nonePolicy = new ConflictResolutionPolicy
             {
                 Mode = ConflictResolutionMode.Custom
             };
 
-            DocumentCollection containerNoPolicy = new DocumentCollection
+            DocumentCollection containerNone = new DocumentCollection
             {
-                Id = containerNameNoPolicy,
+                Id = noneContainerName,
                 PartitionKey = partitionKeyDefinition,
-                ConflictResolutionPolicy = policyNone
+                ConflictResolutionPolicy = nonePolicy
             };
-            await clients[0].CreateDocumentCollectionIfNotExistsAsync(databaseUri, containerNoPolicy);
+            await clients[0].CreateDocumentCollectionIfNotExistsAsync(databaseUri, containerNone);
         }
         public async Task RunDemo()
         {
@@ -132,8 +161,9 @@ namespace CosmosGlobalDistDemos
             {
                 Console.WriteLine("Multi Master Conflict Resolution");
                 Console.WriteLine("--------------------------------");
-                await GenerateInsertConflicts(containerUriLWW);
-                await GenerateUpdateConflicts(containerUriNone);
+                await GenerateInsertConflicts(lwwContainerUri, "Generate insert conflicts on container with Last Writer Wins Policy (Max UserDefinedId Wins).");
+                await GenerateInsertConflicts(udpContainerUri, "Generate insert conflicts on container with User Defined Procedure Policy (Min UserDefinedId Wins).");
+                await GenerateUpdateConflicts(noneContainerUri, "Generate update conficts on container with no Policy defined, write to Conflicts Feed.");
 
                 Console.WriteLine($"Test concluded. Press any key to continue\r\n...");
                 Console.ReadKey(true);
@@ -143,11 +173,11 @@ namespace CosmosGlobalDistDemos
                 Console.WriteLine(dcx.Message);
             }
         }
-        private async Task GenerateInsertConflicts(Uri collectionUri)
+        private async Task GenerateInsertConflicts(Uri collectionUri, string test)
         {
             bool isConflicts = false;
 
-            Console.WriteLine($"Generate insert conflicts by simultaneously inserting the same item into {clients.Count} regions.\r\nPress any key to continue...");
+            Console.WriteLine($"{test}\r\nPress any key to continue...");
             Console.ReadKey(true);
 
             while (!isConflicts)
@@ -158,7 +188,7 @@ namespace CosmosGlobalDistDemos
 
                 foreach (DocumentClient client in clients)
                 {
-                    tasks.Add(InsertItemAsync(client, containerUriLWW, customer));
+                    tasks.Add(InsertItemAsync(client, collectionUri, customer));
                 }
 
                 SampleCustomer[] insertedItems = await Task.WhenAll(tasks);
@@ -190,14 +220,14 @@ namespace CosmosGlobalDistDemos
                 throw;
             }
         }
-        private async Task GenerateUpdateConflicts(Uri collectionUri)
+        private async Task GenerateUpdateConflicts(Uri collectionUri, string test)
         {
             bool isConflicts = false;
 
             Console.WriteLine();
-            Console.WriteLine($"Update the same item in {clients.Count} regions to generate conflicts.\r\nPress any key to continue...");
+            Console.WriteLine($"{test}\r\nPress any key to continue...");
             Console.ReadKey(true);
-            Console.WriteLine($"Insert an item to create an update conflict on.");
+            Console.WriteLine($"Inserting an item to create an update conflict on.");
 
             //Generate a new customer, set the region property
             SampleCustomer customer = customerGenerator.Generate();
