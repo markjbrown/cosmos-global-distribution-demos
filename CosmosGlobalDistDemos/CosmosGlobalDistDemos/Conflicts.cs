@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
+using System.Diagnostics;
 
 namespace CosmosGlobalDistDemos
 {
@@ -85,75 +86,83 @@ namespace CosmosGlobalDistDemos
         }
         public async Task Initalize()
         {
-            Console.WriteLine("MultiMaster Conflicts Initialize");
-
-            //Database definition
-            Database database = new Database { Id = databaseName };
-
-            //Throughput - RUs
-            RequestOptions options = new RequestOptions { OfferThroughput = 1000 };
-
-            //create the database
-            await clients[0].CreateDatabaseIfNotExistsAsync(database, options);
-            
-            //Shared Container properties
-            PartitionKeyDefinition partitionKeyDefinition = new PartitionKeyDefinition();
-            partitionKeyDefinition.Paths.Add(PartitionKeyProperty);
-
-            //Conflict Policy for Container using Last Writer Wins
-            ConflictResolutionPolicy lwwPolicy = new ConflictResolutionPolicy
+            try
             {
-                Mode = ConflictResolutionMode.LastWriterWins,
-                ConflictResolutionPath = "/userDefinedId"
-            };
+                Console.WriteLine("MultiMaster Conflicts Initialize");
 
-            DocumentCollection containerLww = new DocumentCollection
+                //Database definition
+                Database database = new Database { Id = databaseName };
+
+                //Throughput - RUs
+                RequestOptions options = new RequestOptions { OfferThroughput = 1000 };
+
+                //create the database
+                await clients[0].CreateDatabaseIfNotExistsAsync(database, options);
+
+                //Shared Container properties
+                PartitionKeyDefinition partitionKeyDefinition = new PartitionKeyDefinition();
+                partitionKeyDefinition.Paths.Add(PartitionKeyProperty);
+
+                //Conflict Policy for Container using Last Writer Wins
+                ConflictResolutionPolicy lwwPolicy = new ConflictResolutionPolicy
+                {
+                    Mode = ConflictResolutionMode.LastWriterWins,
+                    ConflictResolutionPath = "/userDefinedId"
+                };
+
+                DocumentCollection containerLww = new DocumentCollection
+                {
+                    Id = lwwContainerName,
+                    PartitionKey = partitionKeyDefinition,
+                    ConflictResolutionPolicy = lwwPolicy
+                };
+                await clients[0].CreateDocumentCollectionIfNotExistsAsync(databaseUri, containerLww);
+
+                //Conflict Policy for Container with User-Defined Stored Procedure
+                ConflictResolutionPolicy udpPolicy = new ConflictResolutionPolicy
+                {
+                    Mode = ConflictResolutionMode.Custom,
+                    ConflictResolutionProcedure = "spConflictUDP"
+                };
+
+                DocumentCollection containerUdp = new DocumentCollection
+                {
+                    Id = udpContainerName,
+                    PartitionKey = partitionKeyDefinition,
+                    ConflictResolutionPolicy = udpPolicy
+                };
+                await clients[0].CreateDocumentCollectionIfNotExistsAsync(databaseUri, containerUdp);
+
+                //Stored Procedure definition
+                StoredProcedure spConflictUdp = new StoredProcedure
+                {
+                    Id = "spConflictUDP",
+                    Body = File.ReadAllText($@"spConflictUDP.js")
+                };
+
+                //Create the Conflict Resolution stored procedure
+                await clients[0].CreateStoredProcedureAsync(udpContainerUri, spConflictUdp);
+
+
+                //Conflict Policy for Container with no Policy and writing to Conflicts Feed
+                ConflictResolutionPolicy nonePolicy = new ConflictResolutionPolicy
+                {
+                    Mode = ConflictResolutionMode.Custom
+                };
+
+                DocumentCollection containerNone = new DocumentCollection
+                {
+                    Id = noneContainerName,
+                    PartitionKey = partitionKeyDefinition,
+                    ConflictResolutionPolicy = nonePolicy
+                };
+                await clients[0].CreateDocumentCollectionIfNotExistsAsync(databaseUri, containerNone);
+            }
+            catch (DocumentClientException dcx)
             {
-                Id = lwwContainerName,
-                PartitionKey = partitionKeyDefinition,
-                ConflictResolutionPolicy = lwwPolicy
-            };
-            await clients[0].CreateDocumentCollectionIfNotExistsAsync(databaseUri, containerLww);
-
-            //Conflict Policy for Container with User-Defined Stored Procedure
-            ConflictResolutionPolicy udpPolicy = new ConflictResolutionPolicy
-            {
-                Mode = ConflictResolutionMode.Custom,
-                ConflictResolutionProcedure = "spConflictUDP"
-            };
-
-            DocumentCollection containerUdp = new DocumentCollection
-            {
-                Id = udpContainerName,
-                PartitionKey = partitionKeyDefinition,
-                ConflictResolutionPolicy = udpPolicy
-            };
-            await clients[0].CreateDocumentCollectionIfNotExistsAsync(databaseUri, containerUdp);
-
-            //Stored Procedure definition
-            StoredProcedure spConflictUdp = new StoredProcedure
-            {
-                Id = "spConflictUDP",
-                Body = File.ReadAllText($@"spConflictUDP.js")
-            };
-
-            //Create the Conflict Resolution stored procedure
-            await clients[0].CreateStoredProcedureAsync(udpContainerUri, spConflictUdp);
-
-
-            //Conflict Policy for Container with no Policy and writing to Conflicts Feed
-            ConflictResolutionPolicy nonePolicy = new ConflictResolutionPolicy
-            {
-                Mode = ConflictResolutionMode.Custom
-            };
-
-            DocumentCollection containerNone = new DocumentCollection
-            {
-                Id = noneContainerName,
-                PartitionKey = partitionKeyDefinition,
-                ConflictResolutionPolicy = nonePolicy
-            };
-            await clients[0].CreateDocumentCollectionIfNotExistsAsync(databaseUri, containerNone);
+                Console.WriteLine(dcx.Message);
+                Debug.Assert(false);
+            }
         }
         public async Task RunDemo()
         {

@@ -131,9 +131,10 @@ namespace CosmosGlobalDistDemos
                 //Create the stored procedure
                 await clientMulti.CreateStoredProcedureAsync(containerUri, spBulkUpload);                
             }
-            catch(DocumentClientException dcx)
+            catch (DocumentClientException dcx)
             {
                 Console.WriteLine(dcx.Message);
+                Debug.Assert(false);
             }
         }
         public async Task LoadData()

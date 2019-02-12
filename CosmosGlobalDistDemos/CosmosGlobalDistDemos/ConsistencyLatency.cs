@@ -88,27 +88,35 @@ namespace CosmosGlobalDistDemos
         }
         public async Task Initalize()
         {
-            Console.WriteLine("Consistency/Latency Initialize");
-            //Database definition
-            Database database = new Database { Id = databaseName };
+            try
+            {
+                Console.WriteLine("Consistency/Latency Initialize");
+                //Database definition
+                Database database = new Database { Id = databaseName };
 
-            //Throughput - RUs
-            RequestOptions options = new RequestOptions { OfferThroughput = 1000 };
+                //Throughput - RUs
+                RequestOptions options = new RequestOptions { OfferThroughput = 1000 };
 
-            //Container definition
-            PartitionKeyDefinition partitionKeyDefinition = new PartitionKeyDefinition();
-            partitionKeyDefinition.Paths.Add(PartitionKeyProperty);
-            DocumentCollection container = new DocumentCollection { Id = containerName, PartitionKey = partitionKeyDefinition };
+                //Container definition
+                PartitionKeyDefinition partitionKeyDefinition = new PartitionKeyDefinition();
+                partitionKeyDefinition.Paths.Add(PartitionKeyProperty);
+                DocumentCollection container = new DocumentCollection { Id = containerName, PartitionKey = partitionKeyDefinition };
 
-            //create the database for all three accounts
-            await clientEventual.CreateDatabaseIfNotExistsAsync(database, options);
-            await clientStrong1kMiles.CreateDatabaseIfNotExistsAsync(database, options);
-            await clientStrong2kMiles.CreateDatabaseIfNotExistsAsync(database, options);
+                //create the database for all three accounts
+                await clientEventual.CreateDatabaseIfNotExistsAsync(database, options);
+                await clientStrong1kMiles.CreateDatabaseIfNotExistsAsync(database, options);
+                await clientStrong2kMiles.CreateDatabaseIfNotExistsAsync(database, options);
 
-            //Create the container for all three accounts
-            await clientEventual.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container);
-            await clientStrong1kMiles.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container);
-            await clientStrong2kMiles.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container);
+                //Create the container for all three accounts
+                await clientEventual.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container);
+                await clientStrong1kMiles.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container);
+                await clientStrong2kMiles.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container);
+            }
+            catch (DocumentClientException dcx)
+            {
+                Console.WriteLine(dcx.Message);
+                Debug.Assert(false);
+            }
         }
         public async Task RunDemo()
         {

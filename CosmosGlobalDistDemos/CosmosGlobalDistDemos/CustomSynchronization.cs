@@ -99,26 +99,34 @@ namespace CosmosGlobalDistDemos
         }
         public async Task Initalize()
         {
-            Console.WriteLine("Custom Synchronization Initialize");
-            //Database definition
-            Database database = new Database { Id = databaseName };
+            try
+            {
+                Console.WriteLine("Custom Synchronization Initialize");
+                //Database definition
+                Database database = new Database { Id = databaseName };
 
-            //Throughput - RUs
-            RequestOptions options = new RequestOptions { OfferThroughput = 1000 };
+                //Throughput - RUs
+                RequestOptions options = new RequestOptions { OfferThroughput = 1000 };
 
-            //Container definition
-            PartitionKeyDefinition partitionKeyDefinition = new PartitionKeyDefinition();
-            partitionKeyDefinition.Paths.Add(PartitionKeyProperty);
-            DocumentCollection container = new DocumentCollection { Id = containerName, PartitionKey = partitionKeyDefinition };
+                //Container definition
+                PartitionKeyDefinition partitionKeyDefinition = new PartitionKeyDefinition();
+                partitionKeyDefinition.Paths.Add(PartitionKeyProperty);
+                DocumentCollection container = new DocumentCollection { Id = containerName, PartitionKey = partitionKeyDefinition };
 
-            //create the database for all accounts
-            await writeClient.CreateDatabaseIfNotExistsAsync(database, options);
-            await strongClient.CreateDatabaseIfNotExistsAsync(database, options);
+                //create the database for all accounts
+                await writeClient.CreateDatabaseIfNotExistsAsync(database, options);
+                await strongClient.CreateDatabaseIfNotExistsAsync(database, options);
 
-            //Create the container for all accounts
-            await writeClient.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container);
-            await strongClient.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container);
-    }
+                //Create the container for all accounts
+                await writeClient.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container);
+                await strongClient.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container);
+            }
+            catch (DocumentClientException dcx)
+            {
+                Console.WriteLine(dcx.Message);
+                Debug.Assert(false);
+            }
+        }
         public async Task RunDemo()
         {
             try

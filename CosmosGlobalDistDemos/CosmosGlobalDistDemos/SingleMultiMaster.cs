@@ -133,6 +133,7 @@ namespace CosmosGlobalDistDemos
             catch(DocumentClientException dcx)
             {
                 Console.WriteLine(dcx.Message);
+                Debug.Assert(false);
             }
         }
         public async Task LoadData()
