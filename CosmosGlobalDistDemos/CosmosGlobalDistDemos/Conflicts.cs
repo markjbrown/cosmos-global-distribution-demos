@@ -218,6 +218,9 @@ namespace CosmosGlobalDistDemos
         }
         private async Task<SampleCustomer> InsertItemAsync(DocumentClient client, Uri collectionUri, SampleCustomer item)
         {
+            //DeepCopy the item
+            item = Helpers.Clone(item);
+
             //Update UserDefinedId for each item to random number for Conflict Resolution
             item.UserDefinedId = Helpers.RandomNext(0, 1000);
             //Update the write region to the client regions so we know which client wrote the item
