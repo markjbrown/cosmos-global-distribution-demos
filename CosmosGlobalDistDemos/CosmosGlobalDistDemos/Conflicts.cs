@@ -118,11 +118,14 @@ namespace CosmosGlobalDistDemos
                 };
                 await clients[0].CreateDocumentCollectionIfNotExistsAsync(databaseUri, containerLww);
 
+                string udpStoredProcName = "spConflictUDP";
+                Uri spUri = UriFactory.CreateStoredProcedureUri(databaseName, udpContainerName, udpStoredProcName);
+
                 //Conflict Policy for Container with User-Defined Stored Procedure
                 ConflictResolutionPolicy udpPolicy = new ConflictResolutionPolicy
                 {
                     Mode = ConflictResolutionMode.Custom,
-                    ConflictResolutionProcedure = "spConflictUDP"
+                    ConflictResolutionProcedure = spUri.ToString()
                 };
 
                 DocumentCollection containerUdp = new DocumentCollection
@@ -136,8 +139,8 @@ namespace CosmosGlobalDistDemos
                 //Stored Procedure definition
                 StoredProcedure spConflictUdp = new StoredProcedure
                 {
-                    Id = "spConflictUDP",
-                    Body = File.ReadAllText($@"spConflictUDP.js")
+                    Id = udpStoredProcName,
+                    Body = File.ReadAllText($@"{udpStoredProcName}.js")
                 };
 
                 //Create the Conflict Resolution stored procedure
@@ -184,25 +187,33 @@ namespace CosmosGlobalDistDemos
         }
         private async Task GenerateInsertConflicts(Uri collectionUri, string test)
         {
-            bool isConflicts = false;
-
-            Console.WriteLine($"{test}\r\nPress any key to continue...");
-            Console.ReadKey(true);
-
-            while (!isConflicts)
+            try
             {
-                List<Task<SampleCustomer>> tasks = new List<Task<SampleCustomer>>();
+                bool isConflicts = false;
 
-                SampleCustomer customer = customerGenerator.Generate();
+                Console.WriteLine($"{test}\r\nPress any key to continue...");
+                Console.ReadKey(true);
 
-                foreach (DocumentClient client in clients)
+                while (!isConflicts)
                 {
-                    tasks.Add(InsertItemAsync(client, collectionUri, customer));
+                    List<Task<SampleCustomer>> tasks = new List<Task<SampleCustomer>>();
+
+                    SampleCustomer customer = customerGenerator.Generate();
+
+                    foreach (DocumentClient client in clients)
+                    {
+                        tasks.Add(InsertItemAsync(client, collectionUri, customer));
+                    }
+
+                    SampleCustomer[] insertedItems = await Task.WhenAll(tasks);
+
+                    isConflicts = IsConflicts(insertedItems);
                 }
-
-                SampleCustomer[] insertedItems = await Task.WhenAll(tasks);
-
-                isConflicts = IsConflicts(insertedItems);
+            }
+            catch (DocumentClientException dcx)
+            {
+                Console.WriteLine(dcx.Message);
+                Console.ReadKey();
             }
         }
         private async Task<SampleCustomer> InsertItemAsync(DocumentClient client, Uri collectionUri, SampleCustomer item)
@@ -231,44 +242,52 @@ namespace CosmosGlobalDistDemos
         }
         private async Task GenerateUpdateConflicts(Uri collectionUri, string test)
         {
-            bool isConflicts = false;
-
-            Console.WriteLine();
-            Console.WriteLine($"{test}\r\nPress any key to continue...");
-            Console.ReadKey(true);
-            Console.WriteLine($"Inserting an item to create an update conflict on.");
-
-            //Generate a new customer, set the region property
-            SampleCustomer customer = customerGenerator.Generate();
-
-            SampleCustomer insertedItem = await InsertItemAsync(clients[0], collectionUri, customer);
-
-            Console.WriteLine($"Wait 2 seconds to allow item to replicate.");
-            await Task.Delay(2000);
-
-            RequestOptions requestOptions = new RequestOptions
+            try
             {
-                PartitionKey = new PartitionKey(PartitionKeyValue)
-            };
+                bool isConflicts = false;
 
-            while (!isConflicts)
-            {
-                IList<Task<SampleCustomer>> tasks = new List<Task<SampleCustomer>>();
+                Console.WriteLine();
+                Console.WriteLine($"{test}\r\nPress any key to continue...");
+                Console.ReadKey(true);
+                Console.WriteLine($"Inserting an item to create an update conflict on.");
 
-                SampleCustomer item = await clients[0].ReadDocumentAsync<SampleCustomer>(insertedItem.SelfLink, requestOptions);
-                Console.WriteLine($"Original - Name: {item.Name}, City: {item.City}, UserDefId: {item.UserDefinedId}, Region: {item.Region}");
+                //Generate a new customer, set the region property
+                SampleCustomer customer = customerGenerator.Generate();
 
-                foreach (DocumentClient client in clients)
-                {
-                    tasks.Add(UpdateItemAsync(client, collectionUri, item));
-                }
+                SampleCustomer insertedItem = await InsertItemAsync(clients[0], collectionUri, customer);
 
-                SampleCustomer[] updatedItems = await Task.WhenAll(tasks);
-
-                //Delay to allow data to replicate
+                Console.WriteLine($"Wait 2 seconds to allow item to replicate.");
                 await Task.Delay(2000);
 
-                isConflicts = IsConflicts(updatedItems);
+                RequestOptions requestOptions = new RequestOptions
+                {
+                    PartitionKey = new PartitionKey(PartitionKeyValue)
+                };
+
+                while (!isConflicts)
+                {
+                    IList<Task<SampleCustomer>> tasks = new List<Task<SampleCustomer>>();
+
+                    SampleCustomer item = await clients[0].ReadDocumentAsync<SampleCustomer>(insertedItem.SelfLink, requestOptions);
+                    Console.WriteLine($"Original - Name: {item.Name}, City: {item.City}, UserDefId: {item.UserDefinedId}, Region: {item.Region}");
+
+                    foreach (DocumentClient client in clients)
+                    {
+                        tasks.Add(UpdateItemAsync(client, collectionUri, item));
+                    }
+
+                    SampleCustomer[] updatedItems = await Task.WhenAll(tasks);
+
+                    //Delay to allow data to replicate
+                    await Task.Delay(2000);
+
+                    isConflicts = IsConflicts(updatedItems);
+                }
+            }
+            catch(DocumentClientException dcx)
+            {
+                Console.WriteLine(dcx.Message);
+                Console.ReadKey();
             }
         }
         private async Task<SampleCustomer> UpdateItemAsync(DocumentClient client, Uri collectionUri, SampleCustomer item)
