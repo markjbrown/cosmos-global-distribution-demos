@@ -98,6 +98,7 @@
   <ItemGroup>
     <Compile Include="Conflicts.cs" />
     <Compile Include="ConsistencyLatency.cs" />
+    <Compile Include="CustomSyncSample.cs" />
     <Compile Include="CustomSynchronization.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="Program.cs" />

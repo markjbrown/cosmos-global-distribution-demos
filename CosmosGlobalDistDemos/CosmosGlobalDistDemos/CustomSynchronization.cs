@@ -170,6 +170,7 @@ namespace CosmosGlobalDistDemos
                 Console.WriteLine($"Write: Item {i} of {total}, Region: {region}, Latency: {stopwatch.ElapsedMilliseconds} ms, Request Charge: {response.RequestCharge} RUs");
                 lt += stopwatch.ElapsedMilliseconds;
                 ru += response.RequestCharge;
+                stopwatch.Reset();
             }
             results.Add(new ResultData
             {
