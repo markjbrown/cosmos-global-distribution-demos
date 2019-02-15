@@ -18,11 +18,11 @@ This test shows the difference in write latency for a single-master account (mas
 
 ### 4. Multi-Master Conflict Resolution
 
-This test shows the Last Write Wins conflict resolution mode as well as Async mode where any conflicts are written to the Conflicts Feed.
+This test shows the Last Write Wins and Merge Procedure conflict resolution modes as well as "Async" mode where conflicts are written to the Conflicts Feed.
 
 ### 5. Custom Synchronization
 
-This test shows how to implement a custom synchronization between two regions. This allows you to have a lower level of consistency for a database with many replicas across great distances. This scenario shows an account with four regions (West US, West US 2, East US, East US 2) at Session level consistency but with Strong consistency between West US and West US 2. This provides for greater data durability (RPO = 0) without having to use Strong consistency across all regions and over very large distances.
+This test shows how to implement a custom synchronization between two regions. This allows you to have a lower level of consistency for a database with many replicas across great distances. This scenario shows an account with four regions (West US, West US 2, East US, East US 2) at Session level consistency but with Strong consistency between West US and West US 2. This provides for greater data durability (RPO = 0) without having to use Strong consistency across all regions and over very large distances. This demo includes a separate class that shows a simpler implementation of this you can more easily used without all the timer code.
 
 ## Provisioning Cosmos DB accounts
 
