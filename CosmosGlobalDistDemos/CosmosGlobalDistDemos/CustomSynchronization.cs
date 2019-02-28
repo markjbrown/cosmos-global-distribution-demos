@@ -105,21 +105,21 @@ namespace CosmosGlobalDistDemos
                 //Database definition
                 Database database = new Database { Id = databaseName };
 
-                //Throughput - RUs
-                RequestOptions options = new RequestOptions { OfferThroughput = 1000 };
-
                 //Container definition
                 PartitionKeyDefinition partitionKeyDefinition = new PartitionKeyDefinition();
                 partitionKeyDefinition.Paths.Add(PartitionKeyProperty);
                 DocumentCollection container = new DocumentCollection { Id = containerName, PartitionKey = partitionKeyDefinition };
 
                 //create the database for all accounts
-                await writeClient.CreateDatabaseIfNotExistsAsync(database, options);
-                await strongClient.CreateDatabaseIfNotExistsAsync(database, options);
+                await writeClient.CreateDatabaseIfNotExistsAsync(database);
+                await strongClient.CreateDatabaseIfNotExistsAsync(database);
+
+                //Throughput - RUs
+                RequestOptions options = new RequestOptions { OfferThroughput = 1000 };
 
                 //Create the container for all accounts
-                await writeClient.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container);
-                await strongClient.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container);
+                await writeClient.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container, options);
+                await strongClient.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container, options);
             }
             catch (DocumentClientException dcx)
             {

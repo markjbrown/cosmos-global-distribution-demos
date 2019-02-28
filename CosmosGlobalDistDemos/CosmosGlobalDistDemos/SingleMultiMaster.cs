@@ -121,13 +121,13 @@ namespace CosmosGlobalDistDemos
                 };
 
                 //Single-Master
-                await clientSingle.CreateDatabaseIfNotExistsAsync(database, options);
-                await clientSingle.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container);
+                await clientSingle.CreateDatabaseIfNotExistsAsync(database);
+                await clientSingle.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container, options);
                 await clientSingle.CreateStoredProcedureAsync(containerUri, spBulkUpload);
 
                 //Multi-Master (For multi-master, define DB throughput as there are 3 containers)
-                await clientMulti.CreateDatabaseIfNotExistsAsync(database, options);
-                await clientMulti.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container);
+                await clientMulti.CreateDatabaseIfNotExistsAsync(database);
+                await clientMulti.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container, options);
                 await clientMulti.CreateStoredProcedureAsync(containerUri, spBulkUpload);
             }
             catch(DocumentClientException dcx)

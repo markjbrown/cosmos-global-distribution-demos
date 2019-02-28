@@ -116,19 +116,13 @@ namespace CosmosGlobalDistDemos
                 };
 
                 //Single Region
-                //create the database
-                await clientSingle.CreateDatabaseIfNotExistsAsync(database, options);
-                //Create the container
-                await clientSingle.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container);
-                //Create the stored procedure
+                await clientSingle.CreateDatabaseIfNotExistsAsync(database);
+                await clientSingle.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container, options);
                 await clientSingle.CreateStoredProcedureAsync(containerUri, spBulkUpload);
 
                 //Multi Region
-                //create the database
-                await clientMulti.CreateDatabaseIfNotExistsAsync(database, options);
-                //Create the container
-                await clientMulti.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container);
-                //Create the stored procedure
+                await clientMulti.CreateDatabaseIfNotExistsAsync(database);
+                await clientMulti.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container, options);
                 await clientMulti.CreateStoredProcedureAsync(containerUri, spBulkUpload);                
             }
             catch (DocumentClientException dcx)

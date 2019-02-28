@@ -93,11 +93,8 @@ namespace CosmosGlobalDistDemos
                 //Database definition
                 Database database = new Database { Id = databaseName };
 
-                //Throughput - RUs
-                RequestOptions options = new RequestOptions { OfferThroughput = 1000 };
-
                 //create the database
-                await clients[0].CreateDatabaseIfNotExistsAsync(database, options);
+                await clients[0].CreateDatabaseIfNotExistsAsync(database);
 
                 //Shared Container properties
                 PartitionKeyDefinition partitionKeyDefinition = new PartitionKeyDefinition();
@@ -110,13 +107,16 @@ namespace CosmosGlobalDistDemos
                     ConflictResolutionPath = "/userDefinedId"
                 };
 
+                //Throughput - RUs
+                RequestOptions options = new RequestOptions { OfferThroughput = 1000 };
+
                 DocumentCollection containerLww = new DocumentCollection
                 {
                     Id = lwwContainerName,
                     PartitionKey = partitionKeyDefinition,
                     ConflictResolutionPolicy = lwwPolicy
                 };
-                await clients[0].CreateDocumentCollectionIfNotExistsAsync(databaseUri, containerLww);
+                await clients[0].CreateDocumentCollectionIfNotExistsAsync(databaseUri, containerLww, options);
 
                 string udpStoredProcName = "spConflictUDP";
                 Uri spUri = UriFactory.CreateStoredProcedureUri(databaseName, udpContainerName, udpStoredProcName);
@@ -134,7 +134,7 @@ namespace CosmosGlobalDistDemos
                     PartitionKey = partitionKeyDefinition,
                     ConflictResolutionPolicy = udpPolicy
                 };
-                await clients[0].CreateDocumentCollectionIfNotExistsAsync(databaseUri, containerUdp);
+                await clients[0].CreateDocumentCollectionIfNotExistsAsync(databaseUri, containerUdp, options);
 
                 //Stored Procedure definition
                 StoredProcedure spConflictUdp = new StoredProcedure
@@ -159,7 +159,7 @@ namespace CosmosGlobalDistDemos
                     PartitionKey = partitionKeyDefinition,
                     ConflictResolutionPolicy = nonePolicy
                 };
-                await clients[0].CreateDocumentCollectionIfNotExistsAsync(databaseUri, containerNone);
+                await clients[0].CreateDocumentCollectionIfNotExistsAsync(databaseUri, containerNone, options);
             }
             catch (DocumentClientException dcx)
             {

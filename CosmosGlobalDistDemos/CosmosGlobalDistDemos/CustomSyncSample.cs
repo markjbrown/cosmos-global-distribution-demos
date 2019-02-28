@@ -11,7 +11,7 @@ namespace CosmosGlobalDistDemos
         private DocumentClient writeClient; //Write to West US 2
         private DocumentClient readClient; //Read from West US
 
-        public async Task InitializeAsync(Uri accountEndpoint, string key)
+        public async Task Initialize(Uri accountEndpoint, string key)
         {
             //Write Policy
             ConnectionPolicy writeConnectionPolicy = new ConnectionPolicy
