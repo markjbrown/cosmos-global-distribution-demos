@@ -12,9 +12,9 @@ This test shows the difference in read latency for an account with a single mast
 
 This test shows the difference in write latency for two accounts with replicas 1000 miles apart in West US 2 and Central US regions, one with Eventual consistency, the other with Strong consistency. There is a third test that shows the impact on latency when the distance between the regions is more than double the distance, demonstrating the speed of light impact on latency when using Strong consistency across large distances.
 
-### 3. Write latency for Single-Master account versus Multi-Master account
+### 3. Read and write latency for Single-Master account versus Multi-Master account
 
-This test shows the difference in write latency for a single-master account (master: East US 2, replica: West US 2) with a client in West US 2. The next test shows the impact on write latency when using a multi-master account (master: East US 2, West US 2) with a client in West US 2.
+This test shows the difference in read latency for a single-master account (master: East US 2, replica: West US 2) with a client in West US 2. The next test shows the impact on write latency when using a multi-master account (master: East US 2, West US 2) with a client in West US 2.
 
 ### 4. Multi-Master Conflict Resolution
 
