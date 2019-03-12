@@ -27,30 +27,24 @@ This test shows how to implement a custom synchronization between two regions. T
 ## Provisioning Cosmos DB accounts
 
 This solution requires nine different Cosmos DB accounts. Each of are configured differently to support the underlying test with different replication modes, consistency levels and regions.
-To simplify this process, the `global-dist-demos.sh` bash script provisions all the accounts using Azure CLI.
 
-To prepare the Cosmos accounts for this solution, follow the steps below.
+To deploy the Cosmos DB accounts for this solution, follow the steps below.
+
+### Steps
+
+- Click "Deploy to Azure" below
+- Enter a unique string to act as a prefix to make your Cosmos DB accounts unique
+- When the script is complete, click on the Outputs tab
+- Open the app.config for the solution on your local machine
+- Copy the values for the endpoints and keys from each account to their corresponding placeholder in app.config
 
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmarkjbrown%2Fcosmos-global-distribution-demos%2Fmaster%2FCosmosGlobalDistDemos%2Fazuredeploy.json" target="_blank">
     <img src="http://azuredeploy.net/deploybutton.png"/>
 </a>
 
-### Steps
-
-- Open Azure Portal and login to your account
-- Ensure the Directory + subscription (under your login top right) you want to create these accounts is selected
-- Launch Bash in Azure Cloud Shell
-- Upload `global-dist-demos.sh`
-- Type `bash global-dist-demos.sh`
-- Follow the prompts
-
-This script can take about 40+ minutes to run and can go some time with no apparent activity. 
-
-When complete it will output all of the Cosmos DB endpoints and keys you will need in this solution's app.config. You may want to copy these to a file or someplace secure after the script completes.
-
 ## Provision Windows VM as Host
 
-These tests are designed to run from a Windows VM in West US 2. You will need to provision a Windows VM (Standard B4ms (4 vcpus, 16 GB memory)) with RDP enabled. After the VM has been provisioned, RDP into it and install Visual Studio 2017, then copy the solution folder to the VM, or connect VS to your forked repo and clone it locally to the VM. 
+These tests are designed to run from a Windows VM in West US 2. You will need a Windows VM with 2-4 CPU's and 8-16 GB of memory with RDP enabled. After the VM has been provisioned, RDP into it and install Visual Studio 2017, then copy the solution folder to the VM, or connect VS to your forked repo and clone it locally to the VM. Alternatively you can use the [Data Science VM](https://ms.portal.azure.com/#create/microsoft-dsvm.dsvm-windowsserver-2016) and just follow the remaining steps to copy the solution to that VM.
 
 To run the demo, RDP into the VM, open the solution folder, launch the solution and press F5.
 
@@ -62,4 +56,4 @@ To run the demo, RDP into the VM, open the solution folder, launch the solution 
 After the accounts are provisioned you can launch the application. Before running any demos you must run the "Initialize" menu item first. Running Initialize will provision 9 databases and 11 containers. Throughput is set at the container level at 1000 RU/s.
 
 [!IMPORTANT]
-> This solution has 11 containers provisioned at 1000 RU/s each which can be quite expensive if left provisioned. It is recommended that you run "Initialize" each time you run this solution and then run "Clean up" when you are done which will delete all the databases and containers for this sample. This will reduce your costs to the absolute minimum.
+> This solution has 11 containers provisioned at 1000 RU/s each which can be quite expensive if left provisioned. It is recommended that you run "Initialize" each time you run this solution and then run "Clean up" when you are done which will delete all the databases and containers for this sample. This will reduce your costs to the absolute minimum. Also be careful not to leave the VM running if not being used.
