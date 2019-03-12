@@ -31,7 +31,7 @@ To simplify this process, the `global-dist-demos.sh` bash script provisions all 
 
 To prepare the Cosmos accounts for this solution, follow the steps below.
 
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https://raw.githubusercontent.com/markjbrown/cosmos-global-distribution-demos/master/CosmosGlobalDistDemos/azuredeploy.json" target="_blank">
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmarkjbrown%2Fcosmos-global-distribution-demos%2Fmaster%2FCosmosGlobalDistDemos%2Fazuredeploy.json" target="_blank">
     <img src="http://azuredeploy.net/deploybutton.png"/>
 </a>
 
