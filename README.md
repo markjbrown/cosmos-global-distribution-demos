@@ -27,9 +27,13 @@ This test shows how to implement a custom synchronization between two regions. T
 ## Provisioning Cosmos DB accounts
 
 This solution requires nine different Cosmos DB accounts. Each of are configured differently to support the underlying test with different replication modes, consistency levels and regions.
-To simplify this process, the `global-dist-demos.sh` bash script provisions all the accounts using Azure CLI. 
+To simplify this process, the `global-dist-demos.sh` bash script provisions all the accounts using Azure CLI.
 
 To prepare the Cosmos accounts for this solution, follow the steps below.
+
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https://raw.githubusercontent.com/markjbrown/cosmos-global-distribution-demos/master/CosmosGlobalDistDemos/azuredeploy.json" target="_blank">
+    <img src="http://azuredeploy.net/deploybutton.png"/>
+</a>
 
 ### Steps
 
