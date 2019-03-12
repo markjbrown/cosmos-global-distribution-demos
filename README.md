@@ -33,6 +33,7 @@ To deploy the Cosmos DB accounts for this solution, follow the steps below.
 ### Steps
 
 - Click "Deploy to Azure" below
+- Enter a resource group name and location
 - Enter a unique string to act as a prefix to make your Cosmos DB accounts unique
 - When the script is complete, click on the Outputs tab
 - Open the app.config for the solution on your local machine
