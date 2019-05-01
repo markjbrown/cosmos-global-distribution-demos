@@ -17,8 +17,8 @@ namespace CosmosGlobalDistDemos
         * Shared for all demos in this solution
         * - Windows VM, West US 2, Standard B4 (4 core, 16GB), RDP enabled. This solution gets run from the VM.
         * 
-        *   Single Region => Cosmos DB account: Replication: Single-Master, Write Region: Southeast Asia, Consistency: Eventual
-        *   Multi-Region => Cosmos DB account: Replication: Single-Master, Write Region: Southeast Asia, Read Region: West US 2, Consistency: Eventual
+        *   Single Region => Cosmos DB account: Replication: Single-Master, Write Region: East US 2, Consistency: Eventual
+        *   Multi-Region => Cosmos DB account: Replication: Single-Master, Write Region: East US 2, Read Region: West US 2, Consistency: Eventual
         *   
     */
 
@@ -101,7 +101,7 @@ namespace CosmosGlobalDistDemos
                 Database database = new Database { Id = databaseName };
 
                 //Throughput - RUs
-                RequestOptions options = new RequestOptions { OfferThroughput = 1000 };
+                RequestOptions options = new RequestOptions { OfferThroughput = 400 };
 
                 //Container definition
                 PartitionKeyDefinition partitionKeyDefinition = new PartitionKeyDefinition();
@@ -187,8 +187,7 @@ namespace CosmosGlobalDistDemos
 
             int i = 0;
             int total = items.Count;
-            long lt = 0;
-            double ru = 0;
+            List<Result> result = new List<Result>();
 
             Console.WriteLine();
             Console.WriteLine($"Test {total} reads against {replicaType} account in {region} from West US 2\r\nPress any key to continue\r\n...");
@@ -205,25 +204,27 @@ namespace CosmosGlobalDistDemos
                 ResourceResponse<Document> response = await client.ReadDocumentAsync(item.SelfLink, requestOptions);
                 stopwatch.Stop();
                 Console.WriteLine($"Read {i} of {total}, region: {region}, Latency: {stopwatch.ElapsedMilliseconds} ms, Request Charge: {response.RequestCharge} RUs");
-                lt += stopwatch.ElapsedMilliseconds;
-                ru += response.RequestCharge;
+                result.Add(new Result(stopwatch.ElapsedMilliseconds, response.RequestCharge));
                 i++;
                 stopwatch.Reset();
             }
+
+            //Average at 99th Percentile
+            string _latency = Math.Round(result.OrderBy(o => o.Latency).Take(99).Average(o => o.Latency),0).ToString();
+            string _ru = Math.Round(result.OrderBy(o => o.Latency).Take(99).Average(o => o.RU)).ToString();
             results.Add(new ResultData
             {
                 Test = $"Test {replicaType}",
-                //Test = $"{replicaType} account in {region} from West US 2",
-                AvgLatency = (lt / total).ToString(),
-                AvgRU = Math.Round(ru / total).ToString()
+                AvgLatency = _latency,
+                AvgRU = _ru
             });
             Console.WriteLine();
             Console.WriteLine("Summary");
             Console.WriteLine("-----------------------------------------------------------------------------------------------------");
             Console.WriteLine($"Test {total} reads against {replicaType} account in {region}");
             Console.WriteLine();
-            Console.WriteLine($"Average Latency:\t{(lt / total)} ms");
-            Console.WriteLine($"Average Request Units:\t{Math.Round(ru / total)} RUs");
+            Console.WriteLine($"Average Latency:\t{_latency} ms");
+            Console.WriteLine($"Average Request Units:\t{_ru} RUs");
             Console.WriteLine();
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey(true);

@@ -108,7 +108,7 @@ namespace CosmosGlobalDistDemos
                 };
 
                 //Throughput - RUs
-                RequestOptions options = new RequestOptions { OfferThroughput = 1000 };
+                RequestOptions options = new RequestOptions { OfferThroughput = 400 };
 
                 DocumentCollection containerLww = new DocumentCollection
                 {

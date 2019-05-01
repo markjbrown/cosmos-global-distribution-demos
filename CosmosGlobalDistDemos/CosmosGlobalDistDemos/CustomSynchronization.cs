@@ -115,7 +115,7 @@ namespace CosmosGlobalDistDemos
                 await strongClient.CreateDatabaseIfNotExistsAsync(database);
 
                 //Throughput - RUs
-                RequestOptions options = new RequestOptions { OfferThroughput = 1000 };
+                RequestOptions options = new RequestOptions { OfferThroughput = 400 };
 
                 //Create the container for all accounts
                 await writeClient.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container, options);
@@ -153,6 +153,7 @@ namespace CosmosGlobalDistDemos
             int total = 100;
             long lt = 0;
             double ru = 0;
+            List<Result> result = new List<Result>();
 
             string region = Helpers.ParseEndpoint(client.WriteEndpoint);
             string consistency = client.ConsistencyLevel.ToString();
@@ -168,15 +169,20 @@ namespace CosmosGlobalDistDemos
                 ResourceResponse<Document> response = await client.CreateDocumentAsync(containerUri, customer);
                 stopwatch.Stop();
                 Console.WriteLine($"Write: Item {i} of {total}, Region: {region}, Latency: {stopwatch.ElapsedMilliseconds} ms, Request Charge: {response.RequestCharge} RUs");
+                result.Add(new Result(stopwatch.ElapsedMilliseconds, response.RequestCharge));
                 lt += stopwatch.ElapsedMilliseconds;
                 ru += response.RequestCharge;
                 stopwatch.Reset();
             }
+
+            //Average at 99th Percentile
+            string _latency = Math.Round(result.OrderBy(o => o.Latency).Take(99).Average(o => o.Latency), 0).ToString();
+            string _ru = Math.Round(result.OrderBy(o => o.Latency).Take(99).Average(o => o.RU)).ToString();
             results.Add(new ResultData
             {
                 Test = $"Test with all {consistency} Consistency",
-                AvgLatency = (lt / total).ToString(),
-                AvgRU = Math.Round(ru / total).ToString()
+                AvgLatency = _latency,
+                AvgRU = _ru
             });
             Console.WriteLine();
             Console.WriteLine();
@@ -184,8 +190,8 @@ namespace CosmosGlobalDistDemos
             Console.WriteLine("-----------------------------------------------------------------------------------------------------");
             Console.WriteLine($"Test {total} writes account in {region} with {consistency} consistency between all replicas");
             Console.WriteLine();
-            Console.WriteLine($"Average Latency:\t{(lt / total)} ms");
-            Console.WriteLine($"Average Request Units:\t{Math.Round(ru / total)} RUs");
+            Console.WriteLine($"Average Latency:\t{_latency} ms");
+            Console.WriteLine($"Average Request Units:\t{_ru} RUs");
             Console.WriteLine();
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey(true);
@@ -198,8 +204,7 @@ namespace CosmosGlobalDistDemos
             int total = 100;
             long lt = 0;
             double ru = 0;
-            long ltAgg = 0;
-            double ruAgg = 0;
+            List<Result> result = new List<Result>();
 
             string writeRegion = Helpers.ParseEndpoint(writeClient.WriteEndpoint);
             string readRegion = Helpers.ParseEndpoint(readClient.ReadEndpoint);
@@ -217,31 +222,28 @@ namespace CosmosGlobalDistDemos
                 SampleCustomer customer = customerGenerator.Generate();
 
                 stopwatch.Start();
+                    //Write
                     ResourceResponse<Document> writeResponse = await writeClient.CreateDocumentAsync(containerUri, customer);
-                stopwatch.Stop();
-                        lt += stopwatch.ElapsedMilliseconds;
-                        ru += writeResponse.RequestCharge;
-                stopwatch.Reset();
-
-                stopwatch.Start();
+                    //Read
                     ResourceResponse<Document> readResponse = await readClient.ReadDocumentAsync(writeResponse.Resource.SelfLink, 
                         new RequestOptions { PartitionKey = partitionKeyValue, SessionToken = writeResponse.SessionToken});
                 stopwatch.Stop();
-                        lt += stopwatch.ElapsedMilliseconds;
-                        ru += readResponse.RequestCharge;
+                lt = stopwatch.ElapsedMilliseconds;
+                ru = writeResponse.RequestCharge + readResponse.RequestCharge;
+                result.Add(new Result(lt, ru));
                 stopwatch.Reset();
                 Console.WriteLine($"Write/Read: Item {i} of {total}, Region: {writeRegion}, Latency: {lt} ms, Request Charge: {ru} RUs");
-
-                ltAgg += lt;
-                ruAgg += ru;
-                lt = 0;
-                ru = 0;
             }
+
+            //Average at 99th Percentile
+            string _latency = Math.Round(result.OrderBy(o => o.Latency).Take(99).Average(o => o.Latency), 0).ToString();
+            string _ru = Math.Round(result.OrderBy(o => o.Latency).Take(99).Average(o => o.RU)).ToString();
+
             results.Add(new ResultData
             {
                 Test = $"Test with Custom Synchronization",
-                AvgLatency = (ltAgg / total).ToString(),
-                AvgRU = Math.Round(ruAgg / total).ToString()
+                AvgLatency = _latency,
+                AvgRU = _ru
             });
             Console.WriteLine();
             Console.WriteLine();
@@ -249,8 +251,8 @@ namespace CosmosGlobalDistDemos
             Console.WriteLine("-------------------------------------------------------------------------------------------------------------------------------------");
             Console.WriteLine($"Test {total} writes in {writeRegion} with {consistency} consistency between all replicas except {readRegion} with Strong consistency");
             Console.WriteLine();
-            Console.WriteLine($"Average Latency:\t{(ltAgg / total)} ms");
-            Console.WriteLine($"Average Request Units:\t{Math.Round(ruAgg / total)} RUs");
+            Console.WriteLine($"Average Latency:\t{_latency} ms");
+            Console.WriteLine($"Average Request Units:\t{_ru} RUs");
             Console.WriteLine();
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey(true);

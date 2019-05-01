@@ -26,7 +26,7 @@
       "type": "Microsoft.DocumentDB/databaseAccounts",
       "kind": "GlobalDocumentDB",
       "name": "[variables('singleRegionEndpoint')]",
-      "location": "South East Asia",
+      "location": "West US 2",
       "properties": {
         "name": "[variables('singleRegionEndpoint')]",
         "databaseAccountOfferType": "Standard",
@@ -35,7 +35,7 @@
         },
         "locations": [
           {
-            "locationName": "South East Asia",
+            "locationName": "East US 2",
             "failoverPriority": 0
           }
         ]
@@ -46,7 +46,7 @@
       "type": "Microsoft.DocumentDB/databaseAccounts",
       "kind": "GlobalDocumentDB",
       "name": "[variables('multiRegionEndpoint')]",
-      "location": "South East Asia",
+      "location": "West US 2",
       "properties": {
         "name": "[variables('multiRegionEndpoint')]",
         "databaseAccountOfferType": "Standard",
@@ -55,7 +55,7 @@
         },
         "locations": [
           {
-            "locationName": "South East Asia",
+            "locationName": "East US 2",
             "failoverPriority": 0
           },
           {
@@ -142,7 +142,7 @@
       "type": "Microsoft.DocumentDB/databaseAccounts",
       "kind": "GlobalDocumentDB",
       "name": "[variables('singleMasterEndpoint')]",
-      "location": "East US 2",
+      "location": "West US 2",
       "properties": {
         "name": "[variables('singleMasterEndpoint')]",
         "databaseAccountOfferType": "Standard",
@@ -166,7 +166,7 @@
       "type": "Microsoft.DocumentDB/databaseAccounts",
       "kind": "GlobalDocumentDB",
       "name": "[variables('multiMasterEndpoint')]",
-      "location": "East US 2",
+      "location": "West US 2",
       "properties": {
         "name": "[variables('multiMasterEndpoint')]",
         "databaseAccountOfferType": "Standard",

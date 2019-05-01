@@ -75,6 +75,17 @@ namespace CosmosGlobalDistDemos
         public int UserDefinedId { get; set; }
     }
 
+    class Result
+    {
+        public long Latency;
+        public double RU;
+
+        public Result(long latency, double ru)
+        {
+            Latency = latency;
+            RU = ru;
+        }
+    }
     class ResultData
     {
         public string Test;

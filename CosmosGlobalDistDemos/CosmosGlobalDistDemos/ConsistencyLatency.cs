@@ -105,7 +105,7 @@ namespace CosmosGlobalDistDemos
                 await clientStrong2kMiles.CreateDatabaseIfNotExistsAsync(database);
 
                 //Throughput - RUs
-                RequestOptions options = new RequestOptions { OfferThroughput = 1000 };
+                RequestOptions options = new RequestOptions { OfferThroughput = 400 };
 
                 //Create the container for all three accounts
                 await clientEventual.CreateDocumentCollectionIfNotExistsAsync(databaseUri, container, options);
@@ -142,8 +142,7 @@ namespace CosmosGlobalDistDemos
             Stopwatch stopwatch = new Stopwatch();
             int i = 0;
             int total = 100;
-            long lt = 0;
-            double ru = 0;
+            List<Result> result = new List<Result>();
 
             //Write tests for account with Eventual consistency
             string region = Helpers.ParseEndpoint(client.WriteEndpoint);
@@ -161,15 +160,19 @@ namespace CosmosGlobalDistDemos
                     ResourceResponse<Document> response = await client.CreateDocumentAsync(containerUri, customer);
                 stopwatch.Stop();
                 Console.WriteLine($"Write: Item {i} of {total}, Region: {region}, Latency: {stopwatch.ElapsedMilliseconds} ms, Request Charge: {response.RequestCharge} RUs");
-                    lt += stopwatch.ElapsedMilliseconds;
-                    ru += response.RequestCharge;
+                result.Add(new Result(stopwatch.ElapsedMilliseconds, response.RequestCharge));
                 stopwatch.Reset();
             }
+
+            //Average at 99th Percentile
+            string _latency = Math.Round(result.OrderBy(o => o.Latency).Take(99).Average(o => o.Latency), 0).ToString();
+            string _ru = Math.Round(result.OrderBy(o => o.Latency).Take(99).Average(o => o.RU)).ToString();
+
             results.Add(new ResultData
                 {
                     Test = $"Test with {consistency} Consistency",
-                    AvgLatency = (lt / total).ToString(),
-                    AvgRU = Math.Round(ru / total).ToString()
+                    AvgLatency = _latency,
+                    AvgRU = _ru
                 });
             Console.WriteLine();
             Console.WriteLine();
@@ -177,8 +180,8 @@ namespace CosmosGlobalDistDemos
             Console.WriteLine("-----------------------------------------------------------------------------------------------------");
             Console.WriteLine($"Test 100 writes against account in {region} with {consistency} consistency level, with replica {distance} away");
             Console.WriteLine();
-            Console.WriteLine($"Average Latency:\t{(lt / total)} ms");
-            Console.WriteLine($"Average Request Units:\t{Math.Round(ru / total)} RUs");
+            Console.WriteLine($"Average Latency:\t{_latency} ms");
+            Console.WriteLine($"Average Request Units:\t{_ru} RUs");
             Console.WriteLine();
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey(true);
