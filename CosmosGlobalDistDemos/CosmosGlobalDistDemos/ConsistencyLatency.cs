@@ -124,13 +124,15 @@ namespace CosmosGlobalDistDemos
             {
                 results = new List<ResultData>();
 
-                Console.WriteLine("Test Latency between Eventual Consistency vs Strong Consistency at 1000 and 2000 miles");
+                Console.WriteLine("Test Consistency vs. Latency and Consistency vs Throughput");
                 Console.WriteLine("-------------------------------------------------------------------------------------");
                 Console.WriteLine();
 
                 await WriteBenchmark(clientEventual, "1000 miles");
                 await WriteBenchmark(clientStrong1kMiles, "1000 miles");
-                await WriteBenchmark(clientStrong2kMiles, "2000 miles", true);
+                await WriteBenchmark(clientStrong2kMiles, "2000 miles");
+                await ReadBenchmark(clientEventual, "Eventual consistency");
+                await ReadBenchmark(clientStrong1kMiles, "Strong consistency", true);
             }
             catch (DocumentClientException dcx)
             {
@@ -170,7 +172,7 @@ namespace CosmosGlobalDistDemos
 
             results.Add(new ResultData
                 {
-                    Test = $"Test with {consistency} Consistency",
+                    Test = $"Test writes with {consistency} Consistency",
                     AvgLatency = _latency,
                     AvgRU = _ru
                 });
@@ -188,6 +190,79 @@ namespace CosmosGlobalDistDemos
 
             if(final)
             { 
+                Console.WriteLine();
+                Console.WriteLine("Summary");
+                Console.WriteLine("-----------------------------------------------------------------------------------------------------");
+                foreach (ResultData r in results)
+                {
+                    Console.WriteLine($"{r.Test}\tAvg Latency: {r.AvgLatency} ms\tAverage RU: {r.AvgRU}");
+                }
+                Console.WriteLine();
+                Console.WriteLine($"Test concluded. Press any key to continue\r\n...");
+                Console.ReadKey(true);
+            }
+        }
+        private async Task ReadBenchmark(DocumentClient client, string accountType, bool final = false)
+        {
+            string region = Helpers.ParseEndpoint(client.ReadEndpoint);
+            Stopwatch stopwatch = new Stopwatch();
+
+            FeedOptions feedOptions = new FeedOptions
+            {
+                PartitionKey = new PartitionKey(PartitionKeyValue)
+            };
+            string sql = "SELECT * FROM c";
+            var items = client.CreateDocumentQuery(containerUri, sql, feedOptions).ToList();
+
+            int i = 0;
+            int total = items.Count;
+            List<Result> result = new List<Result>();
+
+            string consistency = client.ConsistencyLevel.ToString();
+
+            Console.WriteLine();
+            Console.WriteLine($"Test {total} reads against {accountType} account in {region}\r\nPress any key to continue\r\n...");
+            Console.ReadKey(true);
+
+            RequestOptions requestOptions = new RequestOptions
+            {
+                PartitionKey = new PartitionKey(PartitionKeyValue)
+            };
+
+            foreach (Document item in items)
+            {
+                stopwatch.Start();
+                ResourceResponse<Document> response = await client.ReadDocumentAsync(item.SelfLink, requestOptions);
+                stopwatch.Stop();
+                Console.WriteLine($"Read {i} of {total}, region: {region}, Latency: {stopwatch.ElapsedMilliseconds} ms, Request Charge: {response.RequestCharge} RUs");
+                result.Add(new Result(stopwatch.ElapsedMilliseconds, response.RequestCharge));
+                i++;
+                stopwatch.Reset();
+            }
+
+            //Average at 99th Percentile
+            string _latency = Math.Round(result.OrderBy(o => o.Latency).Take(99).Average(o => o.Latency), 0).ToString();
+            string _ru = Math.Round(result.OrderBy(o => o.Latency).Take(99).Average(o => o.RU)).ToString();
+
+            results.Add(new ResultData
+            {
+                Test = $"Test reads with {consistency} Consistency",
+                AvgLatency = _latency,
+                AvgRU = _ru
+            });
+            Console.WriteLine();
+            Console.WriteLine("Summary");
+            Console.WriteLine("-----------------------------------------------------------------------------------------------------");
+            Console.WriteLine($"Test {total} reads against {accountType} account in {region}");
+            Console.WriteLine();
+            Console.WriteLine($"Average Latency:\t{_latency} ms");
+            Console.WriteLine($"Average Request Units:\t{_ru} RUs");
+            Console.WriteLine();
+            Console.WriteLine("Press any key to continue...");
+            Console.ReadKey(true);
+
+            if (final)
+            {
                 Console.WriteLine();
                 Console.WriteLine("Summary");
                 Console.WriteLine("-----------------------------------------------------------------------------------------------------");
