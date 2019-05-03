@@ -197,7 +197,7 @@ namespace CosmosGlobalDistDemos
             List<Result> result = new List<Result>();
 
             Console.WriteLine();
-            Console.WriteLine($"Test {total} reads against {accountType} account in {region}\r\nPress any key to continue\r\n...");
+            Console.WriteLine($"Test {total} reads against {accountType} account in {region} from West US 2\r\nPress any key to continue\r\n...");
             Console.ReadKey(true);
 
             RequestOptions requestOptions = new RequestOptions
@@ -262,7 +262,7 @@ namespace CosmosGlobalDistDemos
             double ru = 0;
 
             Console.WriteLine();
-            Console.WriteLine($"Test {total} writes against {accountType} account in {region}\r\nPress any key to continue\r\n...");
+            Console.WriteLine($"Test {total} writes against {accountType} account in {region} from West US 2\r\nPress any key to continue\r\n...");
             Console.ReadKey(true);
 
             for(i=0; i < total; i++)
