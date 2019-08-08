@@ -45,7 +45,7 @@ To deploy the Cosmos DB accounts for this solution, follow the steps below.
 
 ## Provision Windows VM as Host
 
-These tests are designed to run from a Windows VM in West US 2. You will need a Windows VM with 2-4 CPU's and 8-16 GB of memory with RDP enabled. After the VM has been provisioned, RDP into it and install Visual Studio 2017, then copy the solution folder to the VM, or connect VS to your forked repo and clone it locally to the VM. Alternatively you can use the [Data Science VM](https://ms.portal.azure.com/#create/microsoft-dsvm.dsvm-windowsserver-2016) and just follow the remaining steps to copy the solution to that VM.
+These tests are designed to run from a Windows VM in West US 2. You will need a Windows VM with 2-4 CPU's and 8-16 GB of memory with RDP enabled. After the VM has been provisioned, RDP into it and install Visual Studio 2017, then copy the solution folder to the VM, or connect VS to your forked repo and clone it locally to the VM (with the updated app.config). Alternatively you can use the [Data Science VM](https://ms.portal.azure.com/#create/microsoft-dsvm.dsvm-windowsserver-2016) and just follow the remaining steps to copy the solution to that VM.
 
 To run the demo, RDP into the VM, open the solution folder, launch the solution and press F5.
 
@@ -57,4 +57,4 @@ To run the demo, RDP into the VM, open the solution folder, launch the solution 
 After the accounts are provisioned you can launch the application. Before running any demos you must run the "Initialize" menu item first. Running Initialize will provision 9 databases and 11 containers. Throughput is set at the container level at 400 RU/s.
 
 [!IMPORTANT]
-> This solution has 11 containers provisioned at 1000 RU/s each which can be quite expensive if left provisioned. It is recommended that you run "Initialize" each time you run this solution and then run "Clean up" when you are done which will delete all the databases and containers for this sample. This will reduce your costs to the absolute minimum. Also be careful not to leave the VM running if not being used.
+> This solution has 11 containers provisioned at 400 RU/s each. It is recommended that you run "Initialize" each time you run this solution and then run "Clean up" when you are done which will delete all the databases and containers for this sample. This will reduce your costs to the absolute minimum. You may also want to Stop the VM as well if not being used.
