@@ -17,8 +17,7 @@ namespace CosmosGlobalDistDemos
             ConnectionPolicy writeConnectionPolicy = new ConnectionPolicy
             {
                 ConnectionMode = ConnectionMode.Direct,
-                ConnectionProtocol = Protocol.Tcp,
-                UseMultipleWriteLocations = true
+                ConnectionProtocol = Protocol.Tcp
             };
             //Write to West US 2
             writeConnectionPolicy.SetCurrentLocation(LocationNames.WestUS2);

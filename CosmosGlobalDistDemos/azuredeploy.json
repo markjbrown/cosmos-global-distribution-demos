@@ -17,8 +17,8 @@
     "strong2kMilesEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-consistency-strong-2kmiles'))]",
     "singleMasterEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-single-master'))]",
     "multiMasterEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-multi-master'))]",
-    "strongEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-strong-multi-master'))]",
-    "customSyncEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-custom-multi-master'))]"
+    "strongEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-strong-sync'))]",
+    "customSyncEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-custom-sync'))]"
   },
   "resources": [
     {

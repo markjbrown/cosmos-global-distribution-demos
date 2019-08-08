@@ -13,8 +13,8 @@ namespace CosmosGlobalDistDemos
     /*
     * Resources needed for this demo:
     * 
-    *   Custom => Cosmos DB account: Replication: Multi-Master, Write Region: West US 2, East US 2, West US, East US, Consistency: Session
-    *   Strong => Cosmos DB account: Replication: Multi-Master, Write Region: West US 2, East US 2, West US, East US, Consistency: Strong
+    *   Custom => Cosmos DB account: Replication: Single-Master, Write Region: West US 2, East US 2, West US, East US, Consistency: Session
+    *   Strong => Cosmos DB account: Replication: Single-Master, Write Region: West US 2, East US 2, West US, East US, Consistency: Strong
     *   
 */
     public class CustomSynchronization
@@ -63,8 +63,7 @@ namespace CosmosGlobalDistDemos
             ConnectionPolicy writePolicy = new ConnectionPolicy
             {
                 ConnectionMode = ConnectionMode.Direct,
-                ConnectionProtocol = Protocol.Tcp,
-                UseMultipleWriteLocations = true
+                ConnectionProtocol = Protocol.Tcp
             };
             writePolicy.SetCurrentLocation(writeRegion);
             writeClient = new DocumentClient(new Uri(endpoint), key, writePolicy);
@@ -84,7 +83,7 @@ namespace CosmosGlobalDistDemos
             ConnectionPolicy strongPolicy = new ConnectionPolicy
             {
                 ConnectionMode = ConnectionMode.Direct,
-                ConnectionProtocol = Protocol.Tcp,
+                ConnectionProtocol = Protocol.Tcp
             };
             strongPolicy.SetCurrentLocation(writeRegion);
             endpoint = ConfigurationManager.AppSettings["StrongEndpoint"];

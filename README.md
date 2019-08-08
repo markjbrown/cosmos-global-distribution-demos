@@ -54,7 +54,7 @@ To run the demo, RDP into the VM, open the solution folder, launch the solution 
 
 ## Initializing the Demos
 
-After the accounts are provisioned you can launch the application. Before running any demos you must run the "Initialize" menu item first. Running Initialize will provision 9 databases and 11 containers. Throughput is set at the container level at 1000 RU/s.
+After the accounts are provisioned you can launch the application. Before running any demos you must run the "Initialize" menu item first. Running Initialize will provision 9 databases and 11 containers. Throughput is set at the container level at 400 RU/s.
 
 [!IMPORTANT]
 > This solution has 11 containers provisioned at 1000 RU/s each which can be quite expensive if left provisioned. It is recommended that you run "Initialize" each time you run this solution and then run "Clean up" when you are done which will delete all the databases and containers for this sample. This will reduce your costs to the absolute minimum. Also be careful not to leave the VM running if not being used.
