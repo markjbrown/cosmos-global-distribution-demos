@@ -282,6 +282,7 @@ namespace CosmosGlobalDistDemos
                 await clientEventual.DeleteDatabaseAsync(databaseUri);
                 await clientStrong1kMiles.DeleteDatabaseAsync(databaseUri);
                 await clientStrong2kMiles.DeleteAttachmentAsync(databaseUri);
+                await clientStrong2kMiles.DeleteDatabaseAsync(databaseUri);
             }
             catch {}
         }
