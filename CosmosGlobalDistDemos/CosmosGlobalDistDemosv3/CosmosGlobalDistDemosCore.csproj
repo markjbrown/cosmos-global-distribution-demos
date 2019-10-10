@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>CosmosGlobalDistDemosCore</AssemblyName>
+    <RootNamespace>CosmosGlobalDistDemosCore</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="spBulkUpload.js" />
+    <None Remove="spConflictUDP.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="spBulkUpload.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="spConflictUDP.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Bogus" Version="28.3.1" />
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="3.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="AppSettings.local.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

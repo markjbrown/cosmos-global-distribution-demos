@@ -5,6 +5,7 @@
 
 # App.config
 *.config
+*.local.json
 
 # User-specific files
 *.suo
