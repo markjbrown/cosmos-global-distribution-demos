@@ -10,13 +10,13 @@
     }
   },
   "variables": {
-    "singleRegionEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-latency-single-region'))]",
-    "multiRegionEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-latency-multi-region'))]",
-    "eventualEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-consistency-eventual'))]",
-    "strong1kMilesEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-consistency-strong-1kmiles'))]",
-    "strong2kMilesEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-consistency-strong-2kmiles'))]",
-    "singleMasterEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-single-master'))]",
-    "multiMasterEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-multi-master'))]",
+    "singleRegionEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-read-single-region'))]",
+    "multiRegionEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-read-multi-region'))]",
+    "eventualEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-eventual-1kmiles'))]",
+    "strong1kMilesEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-strong-1kmiles'))]",
+    "strong2kMilesEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-strong-2kmiles'))]",
+    "singleMasterEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-write-single-master'))]",
+    "multiMasterEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-write-multi-master'))]",
     "strongEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-strong-sync'))]",
     "customSyncEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-custom-sync'))]"
   },
