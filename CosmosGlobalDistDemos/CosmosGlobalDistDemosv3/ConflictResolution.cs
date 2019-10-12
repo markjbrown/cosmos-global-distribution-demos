@@ -16,7 +16,7 @@ namespace CosmosGlobalDistDemosCore
     */
     class ConflictResolution
     {
-        private static List<Conflict> conflicts = null;
+        private static List<ConflictGenerator> conflicts = null;
 
         public ConflictResolution()
         {
@@ -29,9 +29,9 @@ namespace CosmosGlobalDistDemosCore
                         .Build();
 
 
-                conflicts = new List<Conflict>
+                conflicts = new List<ConflictGenerator>
                 {
-                    new Conflict
+                    new ConflictGenerator
                     {
                         testName = "Generate insert conflicts on container with Last Writer Wins Policy (Max UserDefinedId Wins).",
                         conflictResolutionType = ConflictResolutionType.LastWriterWins,
@@ -44,7 +44,7 @@ namespace CosmosGlobalDistDemosCore
                         replicaRegions = new List<ReplicaRegion>()
                     },
 
-                    new Conflict
+                    new ConflictGenerator
                     {
                         testName = "Generate insert conflicts on container with User Defined Procedure Policy (Min UserDefinedId Wins).",
                         conflictResolutionType = ConflictResolutionType.MergeProcedure,
@@ -57,7 +57,7 @@ namespace CosmosGlobalDistDemosCore
                         replicaRegions = new List<ReplicaRegion>()
                     },
 
-                    new Conflict
+                    new ConflictGenerator
                     {
                         testName = "Generate update conficts on container with no Policy defined, write to Conflicts Feed.",
                         conflictResolutionType = ConflictResolutionType.None,
@@ -71,7 +71,7 @@ namespace CosmosGlobalDistDemosCore
                     }
                 };
                 //Load the regions and initialize the clients
-                foreach (Conflict conflict in conflicts)
+                foreach (ConflictGenerator conflict in conflicts)
                 {
                     List<string> regions = configuration["ConflictRegions"].Split(new char[] { ';' }).ToList();
                     foreach (string region in regions)
@@ -96,7 +96,7 @@ namespace CosmosGlobalDistDemosCore
             {
                 Console.WriteLine("MultiMaster Conflicts Initialize");
 
-                foreach(Conflict conflict in conflicts)
+                foreach(ConflictGenerator conflict in conflicts)
                 {
                     await conflict.InitializeConflicts(conflict);
                 }
@@ -113,7 +113,7 @@ namespace CosmosGlobalDistDemosCore
             {
                 Console.WriteLine($"Multi Master Conflict Resolution\n{Helpers.Line}\n");
 
-                foreach(Conflict conflict in conflicts)
+                foreach(ConflictGenerator conflict in conflicts)
                 {
                     switch (conflict.conflictResolutionType)
                     {
@@ -139,7 +139,7 @@ namespace CosmosGlobalDistDemosCore
         }
         public async Task CleanUp()
         {
-            await Conflict.CleanUp(conflicts);
+            await ConflictGenerator.CleanUp(conflicts);
         }
     }
 }

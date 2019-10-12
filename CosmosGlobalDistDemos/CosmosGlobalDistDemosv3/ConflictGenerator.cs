@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Azure.Cosmos;
 using Newtonsoft.Json;
 using System.Net;
 using System.IO;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Scripts;
 using System.Linq;
 
@@ -24,7 +24,7 @@ namespace CosmosGlobalDistDemosCore
         public Container container;
     }
 
-    class Conflict
+    class ConflictGenerator
     {
         public string testName;
         public ConflictResolutionType conflictResolutionType;
@@ -36,7 +36,7 @@ namespace CosmosGlobalDistDemosCore
         public string partitionKeyPath;
         public string partitionKeyValue;
 
-        public async Task InitializeConflicts(Conflict conflict)
+        public async Task InitializeConflicts(ConflictGenerator conflict)
         {
             //Use West US 2 region to test if containers have been created and create them if needed.
             ReplicaRegion replicaRegion = conflict.replicaRegions.Find(s => s.region == "West US 2");
@@ -52,13 +52,14 @@ namespace CosmosGlobalDistDemosCore
                 catch
                 {
                     DatabaseResponse dbResponse = await replicaRegion.client.CreateDatabaseIfNotExistsAsync(conflict.databaseId);
+                    Database database = dbResponse.Database;
                     ContainerResponse cResponse;
 
                     //Create containers with different conflict resolution policies
                     switch(conflict.conflictResolutionType)
                     {
                         case ConflictResolutionType.LastWriterWins:
-                            cResponse = await dbResponse.Database.CreateContainerIfNotExistsAsync(new ContainerProperties(conflict.containerId, conflict.partitionKeyPath)
+                            cResponse = await database.CreateContainerIfNotExistsAsync(new ContainerProperties(conflict.containerId, conflict.partitionKeyPath)
                             {
                                 ConflictResolutionPolicy = new ConflictResolutionPolicy()
                                 {
@@ -69,7 +70,7 @@ namespace CosmosGlobalDistDemosCore
                             break;
                         case ConflictResolutionType.MergeProcedure:
                             string scriptId = "MergeProcedure";
-                            cResponse = await dbResponse.Database.CreateContainerIfNotExistsAsync(new ContainerProperties(conflict.containerId, conflict.partitionKeyPath)
+                            cResponse = await database.CreateContainerIfNotExistsAsync(new ContainerProperties(conflict.containerId, conflict.partitionKeyPath)
                             {
                                 ConflictResolutionPolicy = new ConflictResolutionPolicy()
                                 {
@@ -84,7 +85,7 @@ namespace CosmosGlobalDistDemosCore
                             break;
 
                         case ConflictResolutionType.None:
-                            cResponse = await dbResponse.Database.CreateContainerIfNotExistsAsync(new ContainerProperties(conflict.containerId, conflict.partitionKeyPath)
+                            cResponse = await database.CreateContainerIfNotExistsAsync(new ContainerProperties(conflict.containerId, conflict.partitionKeyPath)
                             {
                                 ConflictResolutionPolicy = new ConflictResolutionPolicy()
                                 {
@@ -109,7 +110,7 @@ namespace CosmosGlobalDistDemosCore
                 await WarmUp(region.container);
             }
         }
-        public async Task GenerateInsertConflicts(Conflict conflict)
+        public async Task GenerateInsertConflicts(ConflictGenerator conflict)
         {
             try
             {
@@ -150,12 +151,12 @@ namespace CosmosGlobalDistDemosCore
         private async Task<SampleCustomer> InsertItemAsync(Container container, string region, SampleCustomer item)
         {
             //DeepCopy the item
-            item = Conflict.Clone(item);
+            item = ConflictGenerator.Clone(item);
 
             //Update the region
             item.Region = region;
             //Update UserDefinedId to random number for Conflict Resolution
-            item.UserDefinedId = Conflict.RandomNext(0, 1000);
+            item.UserDefinedId = ConflictGenerator.RandomNext(0, 1000);
 
             Console.WriteLine($"Attempting insert - Name: {item.Name}, City: {item.City}, UserDefId: {item.UserDefinedId}, Region: {item.Region}");
 
@@ -177,7 +178,7 @@ namespace CosmosGlobalDistDemosCore
                     throw e;
             }
         }
-        public async Task GenerateUpdateConflicts(Conflict conflict)
+        public async Task GenerateUpdateConflicts(ConflictGenerator conflict)
         {
             try
             {
@@ -220,10 +221,10 @@ namespace CosmosGlobalDistDemosCore
                     foreach (ReplicaRegion updateRegion in conflict.replicaRegions)
                     {
                         //DeepCopy the item
-                        SampleCustomer updateCustomer = Conflict.Clone(seedCustomer);
+                        SampleCustomer updateCustomer = ConflictGenerator.Clone(seedCustomer);
                         //Update region to where update is made and provide new UserDefinedId value
                         updateCustomer.Region = updateRegion.region;
-                        updateCustomer.UserDefinedId = Conflict.RandomNext(0, 1000);
+                        updateCustomer.UserDefinedId = ConflictGenerator.RandomNext(0, 1000);
 
                         //Add update to Task List
                         tasks.Add(UpdateItemAsync(updateRegion.container, updateCustomer));
@@ -267,7 +268,7 @@ namespace CosmosGlobalDistDemosCore
             }
             catch { }
         }
-        private async Task VerifyItemReplicated(Conflict conflict, SampleCustomer customer)
+        private async Task VerifyItemReplicated(ConflictGenerator conflict, SampleCustomer customer)
         {
             bool notifyOnce = false;
 
@@ -314,9 +315,45 @@ namespace CosmosGlobalDistDemosCore
             }
             return false;
         }
-        //Deep copy Document object
-        private static SampleCustomer Clone(SampleCustomer source)
+        public async Task ProcessConflicts(ConflictGenerator conflictGenerator)
         {
+            //Use West US 2 region to review conflicts
+            ReplicaRegion replicaRegion = conflictGenerator.replicaRegions.Find(s => s.region == "West US 2");
+            Container container = replicaRegion.client.GetContainer(conflictGenerator.databaseId, conflictGenerator.containerId);
+
+            FeedIterator<ConflictProperties> conflictFeed = container.Conflicts.GetConflictQueryIterator<ConflictProperties>();
+            while (conflictFeed.HasMoreResults)
+            {
+                FeedResponse<ConflictProperties> conflicts = await conflictFeed.ReadNextAsync();
+                foreach (ConflictProperties c in conflicts)
+                {
+                    //Read the conflict and committed item
+                    SampleCustomer conflict = container.Conflicts.ReadConflictContent<SampleCustomer>(c);
+                    SampleCustomer committed = await container.Conflicts.ReadCurrentAsync<SampleCustomer>(c, new PartitionKey(conflict.MyPartitionKey));
+
+                    switch (c.OperationKind)
+                    {
+                        case OperationKind.Create:
+                            //For Inserts make the higher UserDefinedId value the winner
+                            if (conflict.UserDefinedId >= committed.UserDefinedId)
+                                await container.ReplaceItemAsync<SampleCustomer>(conflict, conflict.Id, new PartitionKey(conflict.MyPartitionKey));
+                            break;
+                        case OperationKind.Replace:
+                            //For Updates make the lower UserDefinedId value the winner
+                            if (conflict.UserDefinedId <= committed.UserDefinedId)
+                                await container.ReplaceItemAsync<SampleCustomer>(conflict, conflict.Id, new PartitionKey(conflict.MyPartitionKey));
+                            break;
+                        case OperationKind.Delete:
+                            //Generally don't resolve deleted items so do nothing
+                            break;
+                    }
+                    // Delete the conflict
+                    await container.Conflicts.DeleteAsync(c, new PartitionKey(conflict.MyPartitionKey));
+                }
+            }
+        }
+        private static SampleCustomer Clone(SampleCustomer source)
+        {   //Deep copy Document object
             return JsonConvert.DeserializeObject<SampleCustomer>(JsonConvert.SerializeObject(source));
         }
         //Thread-safe random number generator
@@ -345,11 +382,11 @@ namespace CosmosGlobalDistDemosCore
             }
             return inst.Next(minValue, maxValue);
         }
-        public static async Task CleanUp(List<Conflict> conflicts)
+        public static async Task CleanUp(List<ConflictGenerator> conflicts)
         {
             try
             {
-                foreach (Conflict conflict in conflicts)
+                foreach (ConflictGenerator conflict in conflicts)
                 {
                     //Get reference to West US 2 region
                     ReplicaRegion region = conflict.replicaRegions.Find(replicaRegion => replicaRegion.region == "West US 2");

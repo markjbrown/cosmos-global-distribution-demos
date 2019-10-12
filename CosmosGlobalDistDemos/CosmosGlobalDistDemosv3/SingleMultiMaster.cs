@@ -104,10 +104,6 @@ namespace CosmosGlobalDistDemosCore
                 foreach (Benchmark benchmark in benchmarks)
                 {
                     benchmark.client = new CosmosClient(benchmark.endpoint, benchmark.key, new CosmosClientOptions { ApplicationRegion = benchmark.targetRegion });
-                    //if(benchmark.benchmarkType == BenchmarkType.Read)
-                    //    benchmark.client = new CosmosClient(benchmark.endpoint, benchmark.key, new CosmosClientOptions { ApplicationRegion = benchmark.readRegion});
-                    //else
-                    //    benchmark.client = new CosmosClient(benchmark.endpoint, benchmark.key, new CosmosClientOptions { ApplicationRegion = benchmark.writeRegion });
                 }
             }
             catch (Exception e)
