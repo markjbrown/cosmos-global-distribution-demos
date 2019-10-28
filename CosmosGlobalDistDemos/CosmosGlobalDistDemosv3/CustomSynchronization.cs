@@ -26,7 +26,7 @@ namespace CosmosGlobalDistDemosCore
                 Console.WriteLine($"Starting Custom Synchronization");
 
                 IConfigurationRoot configuration = new ConfigurationBuilder()
-                        .AddJsonFile("appSettings.local.json")
+                        .AddJsonFile("appSettings.json")
                         .Build();
 
                 //Define new Benchmarks

@@ -30,7 +30,7 @@ namespace CosmosGlobalDistDemosCore
                 Console.WriteLine($"Starting Single Region vs Multi-Region Read Latency");
 
                 IConfigurationRoot configuration = new ConfigurationBuilder()
-                        .AddJsonFile("appSettings.local.json")
+                        .AddJsonFile("appSettings.json")
                         .Build();
 
                 //Define new Benchmarks

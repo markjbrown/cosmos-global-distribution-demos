@@ -27,7 +27,7 @@ namespace CosmosGlobalDistDemosCore
                 Console.WriteLine("Starting Latency vs Eventual and Strong Consistency");
 
                 IConfigurationRoot configuration = new ConfigurationBuilder()
-                        .AddJsonFile("appSettings.local.json")
+                        .AddJsonFile("appSettings.json")
                         .Build();
 
                 //Define new Benchmarks
