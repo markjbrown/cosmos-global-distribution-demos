@@ -125,7 +125,7 @@ namespace CosmosGlobalDistDemosCore
         public static async Task WriteBenchmark(Benchmark benchmark)
         {
             //Verify the benchmark is setup
-            await Benchmark.InitializeBenchmark(benchmark);
+            await InitializeBenchmark(benchmark);
 
             //Customers to insert
             List<SampleCustomer> customers = SampleCustomer.GenerateCustomers(benchmark.partitionKeyValue, 100);
