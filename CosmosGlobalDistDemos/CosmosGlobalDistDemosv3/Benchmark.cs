@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Scripts;
@@ -12,8 +13,7 @@ namespace CosmosGlobalDistDemosCore
     public enum BenchmarkType
     {
         Write = 0,
-        Read = 1,
-        Custom = 2
+        Read = 1
     }
 
     public class Benchmark
@@ -46,10 +46,11 @@ namespace CosmosGlobalDistDemosCore
                 }
                 catch
                 {
-                    DatabaseResponse dbResponse = await benchmark.client.CreateDatabaseIfNotExistsAsync(benchmark.databaseId);
-                    ContainerResponse cResponse = await dbResponse.Database.CreateContainerIfNotExistsAsync(benchmark.containerId, benchmark.partitionKeyPath, 400);
-                    benchmark.container = cResponse.Container;
+                    Database database = await benchmark.client.CreateDatabaseIfNotExistsAsync(benchmark.databaseId);
+                    Container container = await database.CreateContainerIfNotExistsAsync(benchmark.containerId, benchmark.partitionKeyPath, 400);
+                    benchmark.container = container;
                     await Helpers.VerifyContainerReplicated(benchmark.container); //Verify container has replicated
+
 
                     if (benchmark.benchmarkType == BenchmarkType.Read)
                     {
@@ -153,51 +154,6 @@ namespace CosmosGlobalDistDemosCore
 
             OutputResults(benchmark, results);
         }
-        public static async Task CustomSyncBenchmark(Benchmark benchmark)
-        {
-            //Verify the benchmark is setup
-            await Benchmark.InitializeBenchmark(benchmark);
-
-            //Customers to insert
-            List<SampleCustomer> customers = SampleCustomer.GenerateCustomers(benchmark.partitionKeyValue, 100);
-
-            //Create Read client for custom sync
-            CosmosClient syncClient = new CosmosClient(benchmark.endpoint, benchmark.key, new CosmosClientOptions { ApplicationRegion = benchmark.readRegion });
-            Container syncContainer = syncClient.GetContainer(benchmark.databaseId, benchmark.containerId);
-
-            //Console.WriteLine($"\nTest {customers.Count} {GetBenchmarkType(benchmark)} against {benchmark.testName} account in {benchmark.writeRegion} from {benchmark.testName}\nPress any key to continue\n...");
-            Console.WriteLine($"\n{benchmark.testDescription}\nPress any key to continue\n...");
-            Console.ReadKey(true);
-
-            int test = 0;
-            List<Result> results = new List<Result>(); //Individual Benchmark results
-            Stopwatch stopwatch = new Stopwatch();
-
-            foreach (SampleCustomer customer in customers)
-            {
-                stopwatch.Start();
-
-                //write item in one region
-                ItemResponse<SampleCustomer> response = await benchmark.container.CreateItemAsync<SampleCustomer>(customer, new PartitionKey(benchmark.partitionKeyValue));
-                
-                //read back in a second passing the session token with the LSN for the write
-                ItemResponse<SampleCustomer> syncResponse = await syncContainer.ReadItemAsync<SampleCustomer>(
-                    customer.Id,
-                    new PartitionKey(benchmark.partitionKeyValue),
-                    new ItemRequestOptions { SessionToken = response.Headers.Session });
-
-                stopwatch.Stop();
-
-                Console.WriteLine($"Write {test++} of {customers.Count}, region: {benchmark.writeRegion}, Latency: {stopwatch.ElapsedMilliseconds} ms, Request Charge: {response.RequestCharge} RUs");
-
-                results.Add(new Result(stopwatch.ElapsedMilliseconds, response.RequestCharge));
-
-                stopwatch.Reset();
-            }
-
-            OutputResults(benchmark, results);
-
-        }
         public static async Task<List<string>> GetIds(Benchmark benchmark)
         {
             List<string> results = new List<string>();
@@ -224,9 +180,6 @@ namespace CosmosGlobalDistDemosCore
                     benchmarkType = "Reads";
                     break;
                 case BenchmarkType.Write:
-                    benchmarkType = "Writes";
-                    break;
-                case BenchmarkType.Custom:
                     benchmarkType = "Writes";
                     break;
             }

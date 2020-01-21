@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This solution contains a series of benchmarks that demonstrate various concepts for distributed databases, particularly around consistency, latency and distance. The tests in this solution include:
+This solution contains a series of benchmarks that demonstrate various concepts for distributed databases, particularly around consistency and latency. The tests in this solution include:
 
 ### 1. Read latency between single region and multi-region replicated accounts
 
@@ -20,13 +20,9 @@ This test shows the difference in read latency for a single-master account (mast
 
 This test shows the Last Write Wins and Merge Procedure conflict resolution modes as well as "Async" mode where conflicts are written to the Conflicts Feed.
 
-### 5. Custom Synchronization
-
-This test shows how to implement a custom synchronization between two regions. This allows you to have a lower level of consistency for a database with many replicas across great distances. This scenario shows an account with four regions (West US, West US 2, East US, East US 2) at Session level consistency but with Strong consistency between West US and West US 2. This provides for greater data durability (RPO = 0) without having to use Strong consistency across all regions and over very large distances. This demo includes a separate class that shows a simpler implementation of this you can more easily use without all the timer code.
-
 ## Provisioning Cosmos DB accounts
 
-This solution requires nine different Cosmos DB accounts. Each of are configured differently to support the underlying test with different replication modes, consistency levels and regions.
+This solution requires seven different Cosmos DB accounts. Each of are configured differently to support the underlying test with different replication modes, consistency levels and regions.
 
 To deploy the Cosmos DB accounts for this solution, follow the steps below.
 
@@ -36,8 +32,8 @@ To deploy the Cosmos DB accounts for this solution, follow the steps below.
 - Enter a resource group name and location
 - Enter a unique string to act as a prefix to make your Cosmos DB accounts unique
 - When the script is complete, click on the Outputs tab
-- Open the app.config for the solution on your local machine
-- Copy the values for the endpoints and keys from each account to their corresponding placeholder in app.config
+- Open the AppSettings.json for the solution on your local machine
+- Copy the values for the endpoints and keys from each account to their corresponding placeholder in AppSettings.json
 
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmarkjbrown%2Fcosmos-global-distribution-demos%2Fmaster%2FCosmosGlobalDistDemos%2Fazuredeploy.json" target="_blank">
     <img src="http://azuredeploy.net/deploybutton.png"/>
@@ -57,4 +53,4 @@ To run the demo, RDP into the VM, open the solution folder, launch the solution 
 After the accounts are provisioned you can launch the application. Before running any demos you must run the "Initialize" menu item first. Running Initialize will provision 9 databases and 11 containers. Throughput is set at the container level at 400 RU/s.
 
 [!IMPORTANT]
-> This solution has 11 containers provisioned at 400 RU/s each. It is recommended that you run "Initialize" each time you run this solution and then run "Clean up" when you are done which will delete all the databases and containers for this sample. This will reduce your costs to the absolute minimum. You may also want to Stop the VM as well if not being used.
+> This solution has 9 containers provisioned at 400 RU/s each. It is recommended that you run "Initialize" each time you run this solution and "Clean up" when you are done which will delete all the databases and containers for this sample. This will reduce your costs to the absolute minimum. You may also want to Stop the VM as well if not being used.

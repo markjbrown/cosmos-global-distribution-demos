@@ -5,7 +5,7 @@
     "cosmosAccountPrefix": {
       "type": "string",
       "metadata": {
-        "description": "9 Cosmos DB accounts will be provisioned, pick a random prefix to use for their names."
+        "description": "7 Cosmos DB accounts will be provisioned, pick a random prefix to use for their names."
       }
     }
   },
@@ -16,9 +16,7 @@
     "strong1kMilesEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-strong-1kmiles'))]",
     "strong2kMilesEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-strong-2kmiles'))]",
     "singleMasterEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-write-single-master'))]",
-    "multiMasterEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-write-multi-master'))]",
-    "strongEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-strong-sync'))]",
-    "customSyncEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-custom-sync'))]"
+    "multiMasterEndpoint": "[toLower(concat(parameters('cosmosAccountPrefix'), '-write-multi-master'))]"
   },
   "resources": [
     {
@@ -189,64 +187,6 @@
           }
         ]
       }
-    },
-    {
-      "apiVersion": "2015-04-08",
-      "type": "Microsoft.DocumentDB/databaseAccounts",
-      "kind": "GlobalDocumentDB",
-      "name": "[variables('strongEndpoint')]",
-      "location": "West US 2",
-      "properties": {
-        "name": "[variables('strongEndpoint')]",
-        "databaseAccountOfferType": "Standard",
-        "consistencyPolicy": {
-          "defaultConsistencyLevel": "Strong"
-        },
-        "enableMultipleWriteLocations": false,
-        "locations": [
-          {
-            "locationName": "West US 2",
-            "failoverPriority": 0
-          },
-          {
-            "locationName": "East US 2",
-            "failoverPriority": 1
-          },
-          {
-            "locationName": "West US",
-            "failoverPriority": 2
-          }
-        ]
-      }
-    },
-    {
-      "apiVersion": "2015-04-08",
-      "type": "Microsoft.DocumentDB/databaseAccounts",
-      "kind": "GlobalDocumentDB",
-      "name": "[variables('customSyncEndpoint')]",
-      "location": "West US 2",
-      "properties": {
-        "name": "[variables('customSyncEndpoint')]",
-        "databaseAccountOfferType": "Standard",
-        "consistencyPolicy": {
-          "defaultConsistencyLevel": "Session"
-        },
-        "enableMultipleWriteLocations": true,
-        "locations": [
-          {
-            "locationName": "West US 2",
-            "failoverPriority": 0
-          },
-          {
-            "locationName": "East US 2",
-            "failoverPriority": 1
-          },
-          {
-            "locationName": "West US",
-            "failoverPriority": 2
-          }
-        ]
-      }
     }
   ],
   "outputs": {
@@ -289,22 +229,6 @@
     "Strong2kMilesKey": {
       "type": "string",
       "value": "[listkeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('strong2kMilesEndpoint')), '2015-04-08').primaryMasterKey]"
-    },
-    "CustomSyncEndpoint": {
-      "type": "string",
-      "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('customSyncEndpoint')), '2015-04-08').documentEndpoint]"
-    },
-    "CustomSyncKey": {
-      "type": "string",
-      "value": "[listkeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('customSyncEndpoint')), '2015-04-08').primaryMasterKey]"
-    },
-    "StrongEndpoint": {
-      "type": "string",
-      "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('strongEndpoint')), '2015-04-08').documentEndpoint]"
-    },
-    "StrongKey": {
-      "type": "string",
-      "value": "[listkeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('strongEndpoint')), '2015-04-08').primaryMasterKey]"
     },
     "SingleMasterEndpoint": {
       "type": "string",

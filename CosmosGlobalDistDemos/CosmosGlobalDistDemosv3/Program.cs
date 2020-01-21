@@ -30,7 +30,6 @@ namespace CosmosGlobalDistDemosCore
         SingleMultiMaster singleMultiMaster = new SingleMultiMaster();
         ConsistencyLatency consistencyLatency = new ConsistencyLatency();
         ConflictResolution conflictResolution = new ConflictResolution();
-        CustomSynchronization customSynchronization = new CustomSynchronization();
 
         public async Task RunBenchmark()
         {
@@ -46,7 +45,7 @@ namespace CosmosGlobalDistDemosCore
                 Console.WriteLine($"[2]   Read/Write Latency for Single-Master vs. Multi-Master");
                 Console.WriteLine($"[3]   Consistency vs. Latency");
                 Console.WriteLine($"[4]   Multi-Master Conflict Resolution");
-                Console.WriteLine($"[5]   Custom Synchronization");
+                //Console.WriteLine($"[5]   Multi-Master Failover");
                 Console.WriteLine($"[6]   Initialize");
                 Console.WriteLine($"[7]   Clean up");
                 Console.WriteLine($"[8]   Exit");
@@ -76,7 +75,7 @@ namespace CosmosGlobalDistDemosCore
                 else if (result.KeyChar == '5')
                 {
                     Console.Clear();
-                    await customSynchronization.RunBenchmarks();
+                    Console.WriteLine("Not yet implemented");
                 }
                 else if (result.KeyChar == '6')
                 {
@@ -85,7 +84,6 @@ namespace CosmosGlobalDistDemosCore
                     await singleMultiMaster.Initialize();
                     await consistencyLatency.Initialize();
                     await conflictResolution.Initialize();
-                    await customSynchronization.Initialize();
                 }
                 else if (result.KeyChar == '7')
                 {
@@ -94,7 +92,6 @@ namespace CosmosGlobalDistDemosCore
                     await singleMultiMaster.CleanUp();
                     await consistencyLatency.CleanUp();
                     await conflictResolution.CleanUp();
-                    await customSynchronization.CleanUp();
                 }
                 else if (result.KeyChar == '8')
                 {
