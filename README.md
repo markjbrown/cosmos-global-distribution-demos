@@ -60,25 +60,25 @@ This test requires additional configuration in Visual Studio because it modifies
 
 Right click Dependancies and select Add Reference.
 
-![Dependancies Pane](./CosmosGlobalDistDemos/assets/AddRef1.png)
+![Dependancies Pane](./CosmosGlobalDistDemos/assets/AddRef1.PNG)
 
 ### Click Browse
 
 Next click Browse on left hand side and then Browse button on the bottom of the dialog.
 
-![Browse](./CosmosGlobalDistDemos/assets/AddRef2.png)
+![Browse](./CosmosGlobalDistDemos/assets/AddRef2.PNG)
 
 ### Select FirewallAPI.dll
 
 Type in FirewallAPI.dll into the File Name box, then click Add.
 
-![Add](./CosmosGlobalDistDemos/assets/AddRef3.png)
+![Add](./CosmosGlobalDistDemos/assets/AddRef3.PNG)
 
 ### Confirm Interop.NetFwTypeLib
 
 Finally verify that the Interop.NetFwTypeLib appears in COM folder
 
-![Verify](./CosmosGlobalDistDemos/assets/AddRef4.png)
+![Verify](./CosmosGlobalDistDemos/assets/AddRef4.PNG)
 
 ## Initializing the Demos
 
