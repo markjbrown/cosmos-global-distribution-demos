@@ -6,6 +6,8 @@
 # App.config
 *.config
 *.local.json
+appSettings.json
+appSettings.reset.json
 
 # User-specific files
 *.suo

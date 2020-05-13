@@ -317,38 +317,71 @@ namespace CosmosGlobalDistDemosCore
         }
         public async Task ProcessConflicts(ConflictGenerator conflictGenerator)
         {
+            Console.WriteLine($"\nReading conflicts feed to process any conflicts.\n{Helpers.Line}\nPress any key to continue...\n");
+
             //Use West US 2 region to review conflicts
             ReplicaRegion replicaRegion = conflictGenerator.replicaRegions.Find(s => s.region == "West US 2");
             Container container = replicaRegion.client.GetContainer(conflictGenerator.databaseId, conflictGenerator.containerId);
 
             FeedIterator<ConflictProperties> conflictFeed = container.Conflicts.GetConflictQueryIterator<ConflictProperties>();
+
             while (conflictFeed.HasMoreResults)
             {
-                FeedResponse<ConflictProperties> conflicts = await conflictFeed.ReadNextAsync();
-                foreach (ConflictProperties c in conflicts)
+                FeedResponse<ConflictProperties> conflictFeedResponse = await conflictFeed.ReadNextAsync();
+
+                Console.WriteLine($"There are {conflictFeedResponse.Count} conflict(s) to process.\nPress any key to continue\n");
+                Console.ReadKey(true);
+
+
+                foreach (ConflictProperties conflictItem in conflictFeedResponse)
                 {
                     //Read the conflict and committed item
-                    SampleCustomer conflict = container.Conflicts.ReadConflictContent<SampleCustomer>(c);
-                    SampleCustomer committed = await container.Conflicts.ReadCurrentAsync<SampleCustomer>(c, new PartitionKey(conflict.MyPartitionKey));
+                    SampleCustomer conflict = container.Conflicts.ReadConflictContent<SampleCustomer>(conflictItem);
+                    SampleCustomer committed = await container.Conflicts.ReadCurrentAsync<SampleCustomer>(conflictItem, new PartitionKey(conflict.MyPartitionKey));
 
-                    switch (c.OperationKind)
+                    Console.WriteLine($"Processing conflict on customer: {committed.Name}, in {committed.Region} region with conflict in {conflict.Region} region.\n{Helpers.Line}\n");
+                    Console.WriteLine($"Conflict UserDefined Id = {conflict.UserDefinedId}. Committed UserDefined Id = {committed.UserDefinedId}");
+
+                    switch (conflictItem.OperationKind)
                     {
                         case OperationKind.Create:
                             //For Inserts make the higher UserDefinedId value the winner
+                            Console.WriteLine($"Processing insert conflict.\nReplace committed item if conflict has >= UserDefinedId.");
+                            
                             if (conflict.UserDefinedId >= committed.UserDefinedId)
+                            {
+                                Console.WriteLine($"Conflict is the winner. Press any key to replace committed item with conflict.\n");
+                                Console.ReadKey(true);
                                 await container.ReplaceItemAsync<SampleCustomer>(conflict, conflict.Id, new PartitionKey(conflict.MyPartitionKey));
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Committed item is the winner. Press any key to continue.\n");
+                                Console.ReadKey(true);
+                            }
                             break;
                         case OperationKind.Replace:
                             //For Updates make the lower UserDefinedId value the winner
+                            Console.WriteLine($"Processing update conflict.\nUpdate committed item if conflict has a <= UserDefinedId.");
+                            
                             if (conflict.UserDefinedId <= committed.UserDefinedId)
+                            {
+                                Console.WriteLine($"Conflict is the winner. Press any key to replace committed item with conflict.\n");
+                                Console.ReadKey(true);
                                 await container.ReplaceItemAsync<SampleCustomer>(conflict, conflict.Id, new PartitionKey(conflict.MyPartitionKey));
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Committed item is the winner. Press any key to continue.\n");
+                                Console.ReadKey(true);
+                            }
                             break;
                         case OperationKind.Delete:
                             //Generally don't resolve deleted items so do nothing
                             break;
                     }
                     // Delete the conflict
-                    await container.Conflicts.DeleteAsync(c, new PartitionKey(conflict.MyPartitionKey));
+                    await container.Conflicts.DeleteAsync(conflictItem, new PartitionKey(conflict.MyPartitionKey));
                 }
             }
         }
@@ -392,6 +425,17 @@ namespace CosmosGlobalDistDemosCore
                     ReplicaRegion region = conflict.replicaRegions.Find(replicaRegion => replicaRegion.region == "West US 2");
                     await region.client.GetDatabase(conflict.databaseId).DeleteAsync();
                 }
+            }
+            catch { }
+        }
+
+        public static async Task CleanUp(ConflictGenerator conflict)
+        {
+            try
+            {
+                //Get reference to West US 2 region
+                ReplicaRegion region = conflict.replicaRegions.Find(replicaRegion => replicaRegion.region == "West US 2");
+                await region.client.GetDatabase(conflict.databaseId).DeleteAsync();   
             }
             catch { }
         }

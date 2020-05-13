@@ -18,7 +18,11 @@ This test shows the difference in read latency for a single-master account (mast
 
 ### 4. Multi-Master Conflict Resolution
 
-This test shows the Last Write Wins and Merge Procedure conflict resolution modes as well as "Async" mode where conflicts are written to the Conflicts Feed.
+This test generates conflicts and demonstrates conflict resolution for Last Write Wins, Custom Merge Procedure, and "Async" conflict resolution modes where conflicts are written to the conflicts feed and then read and resolved.
+
+### 5. Multi-Master Failover
+
+This test conducts a failover in the SDK client in Multi-Master mode by adding a firewall rule in Windows to block the ip address for the region being read from. Note: This requires the application runs on Windows 10.
 
 ## Provisioning Cosmos DB accounts
 
@@ -41,16 +45,44 @@ To deploy the Cosmos DB accounts for this solution, follow the steps below.
 
 ## Provision Windows VM as Host
 
-These tests are designed to run from a Windows VM in West US 2. You will need a Windows VM with 2-4 CPU's and 8-16 GB of memory with RDP enabled. After the VM has been provisioned, RDP into it and install Visual Studio 2017, then copy the solution folder to the VM, or connect VS to your forked repo and clone it locally to the VM (with the updated app.config). Alternatively you can use the [Data Science VM](https://ms.portal.azure.com/#create/microsoft-dsvm.dsvm-windowsserver-2016) and just follow the remaining steps to copy the solution to that VM.
+These tests are designed to run from a Windows VM in West US 2. Due to the Multi-Master Failover Test, this will need to be a Windows 10 VM. The VM should be configured with a minimum 4 vCPU's and 16 GB of memory with RDP enabled. After the VM has been provisioned, RDP into it and install Visual Studio 2019, then copy the solution folder to the VM, or connect VS to your forked repo and clone it locally to the VM (with the updated app.config).
 
 To run the demo, RDP into the VM, open the solution folder, launch the solution and press F5.
 
 [!Note]
 > You can run this demo from your local machine however the latency benchmarks will be dramatically slower and will not show actual, SLA-based Cosmos DB latency metrics.
 
+## Configure the project to run the Multi-Master Failover Test
+
+This test requires additional configuration in Visual Studio because it modifies the firewall settings on the Windows VM. Follow the steps below to configure this test.
+
+### Add Dependancies
+
+Right click Dependancies and select Add Reference.
+
+![Dependancies Pane](./assets/AddRef1.png)
+
+### Click Browse
+
+Next click Browse on left hand side and then Browse button on the bottom of the dialog.
+
+![Browse](./assets/AddRef2.png)
+
+### Select FirewallAPI.dll
+
+Type in FirewallAPI.dll into the File Name box, then click Add.
+
+![Add](./assets/AddRef3.png)
+
+### Confirm Interop.NetFwTypeLib
+
+Finally verify that the Interop.NetFwTypeLib appears in COM folder
+
+![Verify](./assets/AddRef4.png)
+
 ## Initializing the Demos
 
 After the accounts are provisioned you can launch the application. Before running any demos you must run the "Initialize" menu item first. Running Initialize will provision 9 databases and 11 containers. Throughput is set at the container level at 400 RU/s.
 
 [!IMPORTANT]
-> This solution has 9 containers provisioned at 400 RU/s each. It is recommended that you run "Initialize" each time you run this solution and "Clean up" when you are done which will delete all the databases and containers for this sample. This will reduce your costs to the absolute minimum. You may also want to Stop the VM as well if not being used.
+> This solution has 11 containers provisioned at 400 RU/s each. It is recommended that you run "Initialize" each time you run this solution and "Clean up" when you are done which will delete all the databases and containers for this sample. This will reduce your costs to zero for Cosmos DB. You may also want to Stop the VM as well if not being used.

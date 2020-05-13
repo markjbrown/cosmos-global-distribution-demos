@@ -16,7 +16,10 @@ namespace CosmosGlobalDistDemosCore
     */
     class ConflictResolution
     {
-        private static List<ConflictGenerator> conflicts = null;
+        //private static List<ConflictGenerator> conflicts = null;
+        private static ConflictGenerator lww;
+        private static ConflictGenerator custom;
+        private static ConflictGenerator none;
 
         public ConflictResolution()
         {
@@ -29,59 +32,66 @@ namespace CosmosGlobalDistDemosCore
                         .Build();
 
 
-                conflicts = new List<ConflictGenerator>
+                lww = new ConflictGenerator
                 {
-                    new ConflictGenerator
-                    {
-                        testName = "Generate insert conflicts on container with Last Writer Wins Policy (Max UserDefinedId Wins).",
-                        conflictResolutionType = ConflictResolutionType.LastWriterWins,
-                        endpoint = configuration["MultiMasterEndpoint"],
-                        key = configuration["MultiMasterKey"],
-                        databaseId = configuration["databaseId"],
-                        containerId = configuration["LwwPolicyContainer"],
-                        partitionKeyPath = configuration["partitionKeyPath"],
-                        partitionKeyValue = configuration["partitionKeyValue"],
-                        replicaRegions = new List<ReplicaRegion>()
-                    },
-
-                    new ConflictGenerator
-                    {
-                        testName = "Generate insert conflicts on container with User Defined Procedure Policy (Min UserDefinedId Wins).",
-                        conflictResolutionType = ConflictResolutionType.MergeProcedure,
-                        endpoint = configuration["MultiMasterEndpoint"],
-                        key = configuration["MultiMasterKey"],
-                        databaseId = configuration["databaseId"],
-                        containerId = configuration["UdpPolicyContainer"],
-                        partitionKeyPath = configuration["partitionKeyPath"],
-                        partitionKeyValue = configuration["partitionKeyValue"],
-                        replicaRegions = new List<ReplicaRegion>()
-                    },
-
-                    new ConflictGenerator
-                    {
-                        testName = "Generate update conficts on container with no Policy defined, write to Conflicts Feed.",
-                        conflictResolutionType = ConflictResolutionType.None,
-                        endpoint = configuration["MultiMasterEndpoint"],
-                        key = configuration["MultiMasterKey"],
-                        databaseId = configuration["databaseId"],
-                        containerId = configuration["NoPolicyContainer"],
-                        partitionKeyPath = configuration["partitionKeyPath"],
-                        partitionKeyValue = configuration["partitionKeyValue"],
-                        replicaRegions = new List<ReplicaRegion>()
-                    }
+                    testName = "Generate insert conflicts on container with Last Writer Wins Policy (Max UserDefinedId Wins).",
+                    conflictResolutionType = ConflictResolutionType.LastWriterWins,
+                    endpoint = configuration["MultiMasterEndpoint"],
+                    key = configuration["MultiMasterKey"],
+                    databaseId = configuration["databaseId"],
+                    containerId = configuration["LwwPolicyContainer"],
+                    partitionKeyPath = configuration["partitionKeyPath"],
+                    partitionKeyValue = configuration["partitionKeyValue"],
+                    replicaRegions = new List<ReplicaRegion>()
                 };
-                //Load the regions and initialize the clients
-                foreach (ConflictGenerator conflict in conflicts)
+
+                custom = new ConflictGenerator
                 {
-                    List<string> regions = configuration["ConflictRegions"].Split(new char[] { ';' }).ToList();
-                    foreach (string region in regions)
+                    testName = "Generate insert conflicts on container with User Defined Procedure Policy (Min UserDefinedId Wins).",
+                    conflictResolutionType = ConflictResolutionType.MergeProcedure,
+                    endpoint = configuration["MultiMasterEndpoint"],
+                    key = configuration["MultiMasterKey"],
+                    databaseId = configuration["databaseId"],
+                    containerId = configuration["UdpPolicyContainer"],
+                    partitionKeyPath = configuration["partitionKeyPath"],
+                    partitionKeyValue = configuration["partitionKeyValue"],
+                    replicaRegions = new List<ReplicaRegion>()
+                };
+
+                none = new ConflictGenerator
+                {
+                    testName = "Generate update conficts on container with no Policy defined, write to Conflicts Feed.",
+                    conflictResolutionType = ConflictResolutionType.None,
+                    endpoint = configuration["MultiMasterEndpoint"],
+                    key = configuration["MultiMasterKey"],
+                    databaseId = configuration["databaseId"],
+                    containerId = configuration["NoPolicyContainer"],
+                    partitionKeyPath = configuration["partitionKeyPath"],
+                    partitionKeyValue = configuration["partitionKeyValue"],
+                    replicaRegions = new List<ReplicaRegion>()
+                };
+                
+                //Load the regions and initialize the clients
+                List<string> regions = configuration["ConflictRegions"].Split(new char[] { ';' }).ToList();
+                foreach (string region in regions)
+                {
+                    lww.replicaRegions.Add(new ReplicaRegion
                     {
-                        conflict.replicaRegions.Add(new ReplicaRegion
-                        {
-                            region = region,
-                            client = new CosmosClient(conflict.endpoint, conflict.key, new CosmosClientOptions { ApplicationRegion = region })
-                        });
-                    }
+                        region = region,
+                        client = new CosmosClient(lww.endpoint, lww.key, new CosmosClientOptions { ApplicationRegion = region })
+                    });
+
+                    custom.replicaRegions.Add(new ReplicaRegion
+                    {
+                        region = region,
+                        client = new CosmosClient(custom.endpoint, custom.key, new CosmosClientOptions { ApplicationRegion = region })
+                    });
+
+                    none.replicaRegions.Add(new ReplicaRegion
+                    {
+                        region = region,
+                        client = new CosmosClient(none.endpoint, none.key, new CosmosClientOptions { ApplicationRegion = region })
+                    });
                 }
             }
             catch (Exception e)
@@ -96,10 +106,10 @@ namespace CosmosGlobalDistDemosCore
             {
                 Console.WriteLine("MultiMaster Conflicts Initialize");
 
-                foreach(ConflictGenerator conflict in conflicts)
-                {
-                    await conflict.InitializeConflicts(conflict);
-                }
+                await lww.InitializeConflicts(lww);
+                await custom.InitializeConflicts(custom);
+                await none.InitializeConflicts(none);
+
             }
             catch (Exception e)
             {
@@ -111,25 +121,45 @@ namespace CosmosGlobalDistDemosCore
         {
             try
             {
-                Console.WriteLine($"Multi Master Conflict Resolution\n{Helpers.Line}\n");
+                bool exit = false;
 
-                foreach(ConflictGenerator conflict in conflicts)
+                while (exit == false)
                 {
-                    switch (conflict.conflictResolutionType)
+                    Console.Clear();
+                    Console.WriteLine($"Multi Master Conflict Resolution\n{Helpers.Line}\n");
+                    Console.WriteLine($"[1]   Last Writer Wins");
+                    Console.WriteLine($"[2]   Custom Merge Stored Procedure");
+                    Console.WriteLine($"[3]   Conflict Feed Generate");
+                    Console.WriteLine($"[4]   Conflict Conflict Resolution");
+                    Console.WriteLine($"[5]   Return");
+
+                    ConsoleKeyInfo result = Console.ReadKey(true);
+
+                    if (result.KeyChar == '1')
                     {
-                        case ConflictResolutionType.LastWriterWins:
-                            await conflict.GenerateInsertConflicts(conflict);
-                            break;
-                        case ConflictResolutionType.MergeProcedure:
-                            await conflict.GenerateInsertConflicts(conflict);
-                            break;
-                        case ConflictResolutionType.None:
-                            await conflict.GenerateUpdateConflicts(conflict);
-                            break;
+                        Console.Clear();
+                        await lww.GenerateInsertConflicts(lww);
+                    }
+                    else if (result.KeyChar == '2')
+                    {
+                        Console.Clear();
+                        await custom.GenerateInsertConflicts(custom);
+                    }
+                    else if (result.KeyChar == '3')
+                    {
+                        Console.Clear();
+                        await none.GenerateUpdateConflicts(none);
+                    }
+                    else if (result.KeyChar == '4')
+                    {
+                        Console.Clear();
+                        await none.ProcessConflicts(none);
+                    }
+                    else if (result.KeyChar == '5')
+                    {
+                        exit = true;
                     }
                 }
-                Console.WriteLine($"\nTest concluded. Press any key to continue\n...");
-                Console.ReadKey(true);
             }
             catch (Exception e)
             {
@@ -139,7 +169,10 @@ namespace CosmosGlobalDistDemosCore
         }
         public async Task CleanUp()
         {
-            await ConflictGenerator.CleanUp(conflicts);
+            //await ConflictGenerator.CleanUp(conflicts);
+            await ConflictGenerator.CleanUp(lww);
+            await ConflictGenerator.CleanUp(custom);
+            await ConflictGenerator.CleanUp(none);
         }
     }
 }

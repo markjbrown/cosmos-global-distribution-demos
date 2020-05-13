@@ -30,6 +30,7 @@ namespace CosmosGlobalDistDemosCore
         SingleMultiMaster singleMultiMaster = new SingleMultiMaster();
         ConsistencyLatency consistencyLatency = new ConsistencyLatency();
         ConflictResolution conflictResolution = new ConflictResolution();
+        MultiMasterFailover multiMasterFailover = new MultiMasterFailover();
 
         public async Task RunBenchmark()
         {
@@ -45,7 +46,7 @@ namespace CosmosGlobalDistDemosCore
                 Console.WriteLine($"[2]   Read/Write Latency for Single-Master vs. Multi-Master");
                 Console.WriteLine($"[3]   Consistency vs. Latency");
                 Console.WriteLine($"[4]   Multi-Master Conflict Resolution");
-                //Console.WriteLine($"[5]   Multi-Master Failover");
+                Console.WriteLine($"[5]   Multi-Master Failover");
                 Console.WriteLine($"[6]   Initialize");
                 Console.WriteLine($"[7]   Clean up");
                 Console.WriteLine($"[8]   Exit");
@@ -75,7 +76,7 @@ namespace CosmosGlobalDistDemosCore
                 else if (result.KeyChar == '5')
                 {
                     Console.Clear();
-                    Console.WriteLine("Not yet implemented");
+                    await multiMasterFailover.RunBenchmarks();
                 }
                 else if (result.KeyChar == '6')
                 {
@@ -84,6 +85,7 @@ namespace CosmosGlobalDistDemosCore
                     await singleMultiMaster.Initialize();
                     await consistencyLatency.Initialize();
                     await conflictResolution.Initialize();
+                    await multiMasterFailover.Initialize();
                 }
                 else if (result.KeyChar == '7')
                 {
@@ -92,6 +94,7 @@ namespace CosmosGlobalDistDemosCore
                     await singleMultiMaster.CleanUp();
                     await consistencyLatency.CleanUp();
                     await conflictResolution.CleanUp();
+                    await multiMasterFailover.CleanUp();
                 }
                 else if (result.KeyChar == '8')
                 {
