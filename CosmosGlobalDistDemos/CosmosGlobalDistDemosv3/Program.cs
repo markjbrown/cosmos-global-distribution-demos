@@ -1,10 +1,18 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using System;
 using System.Threading.Tasks;
 
 namespace CosmosGlobalDistDemosCore
 {
     class Program
     {
+
+        static SingleMultiRegion singleMultiRegion;
+        static SingleMultiMaster singleMultiMaster;
+        static ConsistencyLatency consistencyLatency;
+        static ConflictResolution conflictResolution;
+        static MultiMasterFailover multiMasterFailover;
+
         public static async Task Main(string[] args)
         {
             /*
@@ -20,19 +28,23 @@ namespace CosmosGlobalDistDemosCore
             * Run the Initialize before executing any of the demos to provision database and container resources
             * Run clean up to remove databaser and containers. Use portal to delete accounts.
            */
-            Benchmarks benchmarks = new Benchmarks();
-            await benchmarks.RunBenchmark();
-        }
-    }
-    class Benchmarks
-    {
-        SingleMultiRegion singleMultiRegion = new SingleMultiRegion();
-        SingleMultiMaster singleMultiMaster = new SingleMultiMaster();
-        ConsistencyLatency consistencyLatency = new ConsistencyLatency();
-        ConflictResolution conflictResolution = new ConflictResolution();
-        MultiMasterFailover multiMasterFailover = new MultiMasterFailover();
 
-        public async Task RunBenchmark()
+            
+            IConfiguration configuration = new ConfigurationBuilder()
+                .AddJsonFile("appSettings.json")
+                .Build();
+
+            singleMultiRegion = new SingleMultiRegion(configuration);
+            singleMultiMaster = new SingleMultiMaster(configuration);
+            consistencyLatency = new ConsistencyLatency(configuration);
+            conflictResolution = new ConflictResolution(configuration);
+            multiMasterFailover = new MultiMasterFailover(configuration);
+
+            //await benchmarks.RunBenchmark();
+            await RunApp();
+        }
+
+        public static async Task RunApp()
         {
             bool exit = false;
 
@@ -102,5 +114,5 @@ namespace CosmosGlobalDistDemosCore
                 }
             }
         }
-    }
+    }   
 }

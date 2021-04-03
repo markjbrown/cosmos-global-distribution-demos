@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -19,15 +18,15 @@ namespace CosmosGlobalDistDemosCore
         //Benchmarks to run
         private static List<Benchmark> benchmarks = null;
 
-        public MultiMasterFailover()
+        public MultiMasterFailover(IConfiguration configuration)
         {
             try
             {
                 Console.WriteLine($"Starting Multi-Master Failover");
 
-                IConfigurationRoot configuration = new ConfigurationBuilder()
-                        .AddJsonFile("appSettings.json")
-                        .Build();
+                //IConfigurationRoot configuration = new ConfigurationBuilder()
+                //        .AddJsonFile("appSettings.json")
+                //        .Build();
 
                 //Define new Benchmarks
                 benchmarks = new List<Benchmark>

@@ -20,15 +20,15 @@ namespace CosmosGlobalDistDemosCore
         //Benchmarks to run
         private static List<Benchmark> benchmarks = null;
 
-        public ConsistencyLatency()
+        public ConsistencyLatency(IConfiguration configuration)
         {
             try
             {
                 Console.WriteLine("Starting Latency vs Eventual and Strong Consistency");
 
-                IConfigurationRoot configuration = new ConfigurationBuilder()
-                        .AddJsonFile("appSettings.json")
-                        .Build();
+                //IConfigurationRoot configuration = new ConfigurationBuilder()
+                //        .AddJsonFile("appSettings.json")
+                //        .Build();
 
                 //Define new Benchmarks
                 benchmarks = new List<Benchmark>

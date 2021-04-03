@@ -20,7 +20,7 @@
   },
   "resources": [
     {
-      "apiVersion": "2015-04-08",
+      "apiVersion": "2021-01-15",
       "type": "Microsoft.DocumentDB/databaseAccounts",
       "kind": "GlobalDocumentDB",
       "name": "[variables('singleRegionEndpoint')]",
@@ -40,7 +40,7 @@
       }
     },
     {
-      "apiVersion": "2015-04-08",
+      "apiVersion": "2021-01-15",
       "type": "Microsoft.DocumentDB/databaseAccounts",
       "kind": "GlobalDocumentDB",
       "name": "[variables('multiRegionEndpoint')]",
@@ -64,7 +64,7 @@
       }
     },
     {
-      "apiVersion": "2015-04-08",
+      "apiVersion": "2021-01-15",
       "type": "Microsoft.DocumentDB/databaseAccounts",
       "kind": "GlobalDocumentDB",
       "name": "[variables('eventualEndpoint')]",
@@ -88,7 +88,7 @@
       }
     },
     {
-      "apiVersion": "2015-04-08",
+      "apiVersion": "2021-01-15",
       "type": "Microsoft.DocumentDB/databaseAccounts",
       "kind": "GlobalDocumentDB",
       "name": "[variables('strong1kMilesEndpoint')]",
@@ -112,7 +112,7 @@
       }
     },
     {
-      "apiVersion": "2015-04-08",
+      "apiVersion": "2021-01-15",
       "type": "Microsoft.DocumentDB/databaseAccounts",
       "kind": "GlobalDocumentDB",
       "name": "[variables('strong2kMilesEndpoint')]",
@@ -136,7 +136,7 @@
       }
     },
     {
-      "apiVersion": "2015-04-08",
+      "apiVersion": "2021-01-15",
       "type": "Microsoft.DocumentDB/databaseAccounts",
       "kind": "GlobalDocumentDB",
       "name": "[variables('singleMasterEndpoint')]",
@@ -160,7 +160,7 @@
       }
     },
     {
-      "apiVersion": "2015-04-08",
+      "apiVersion": "2021-01-15",
       "type": "Microsoft.DocumentDB/databaseAccounts",
       "kind": "GlobalDocumentDB",
       "name": "[variables('multiMasterEndpoint')]",
@@ -192,59 +192,59 @@
   "outputs": {
     "SingleRegionEndpoint": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('singleRegionEndpoint')), '2015-04-08').documentEndpoint]"
+      "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('singleRegionEndpoint')), '2021-01-15').documentEndpoint]"
     },
     "SingleRegionKey": {
       "type": "string",
-      "value": "[listkeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('singleRegionEndpoint')), '2015-04-08').primaryMasterKey]"
+      "value": "[listkeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('singleRegionEndpoint')), '2021-01-15').primaryMasterKey]"
     },
     "MultiRegionEndpoint": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('multiRegionEndpoint')), '2015-04-08').documentEndpoint]"
+      "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('multiRegionEndpoint')), '2021-01-15').documentEndpoint]"
     },
     "MultiRegionKey": {
       "type": "string",
-      "value": "[listkeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('multiRegionEndpoint')), '2015-04-08').primaryMasterKey]"
+      "value": "[listkeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('multiRegionEndpoint')), '2021-01-15').primaryMasterKey]"
     },
     "EventualEndpoint": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('eventualEndpoint')), '2015-04-08').documentEndpoint]"
+      "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('eventualEndpoint')), '2021-01-15').documentEndpoint]"
     },
     "EventualKey": {
       "type": "string",
-      "value": "[listkeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('eventualEndpoint')), '2015-04-08').primaryMasterKey]"
+      "value": "[listkeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('eventualEndpoint')), '2021-01-15').primaryMasterKey]"
     },
     "Strong1kMilesEndpoint": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('strong1kMilesEndpoint')), '2015-04-08').documentEndpoint]"
+      "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('strong1kMilesEndpoint')), '2021-01-15').documentEndpoint]"
     },
     "Strong1kMilesKey": {
       "type": "string",
-      "value": "[listkeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('strong1kMilesEndpoint')), '2015-04-08').primaryMasterKey]"
+      "value": "[listkeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('strong1kMilesEndpoint')), '2021-01-15').primaryMasterKey]"
     },
     "Strong2kMilesEndpoint": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('strong2kMilesEndpoint')), '2015-04-08').documentEndpoint]"
+      "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('strong2kMilesEndpoint')), '2021-01-15').documentEndpoint]"
     },
     "Strong2kMilesKey": {
       "type": "string",
-      "value": "[listkeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('strong2kMilesEndpoint')), '2015-04-08').primaryMasterKey]"
+      "value": "[listkeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('strong2kMilesEndpoint')), '2021-01-15').primaryMasterKey]"
     },
     "SingleMasterEndpoint": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('singleMasterEndpoint')), '2015-04-08').documentEndpoint]"
+      "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('singleMasterEndpoint')), '2021-01-15').documentEndpoint]"
     },
     "SingleMasterKey": {
       "type": "string",
-      "value": "[listkeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('singleMasterEndpoint')), '2015-04-08').primaryMasterKey]"
+      "value": "[listkeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('singleMasterEndpoint')), '2021-01-15').primaryMasterKey]"
     },
     "MultiMasterEndpoint": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('multiMasterEndpoint')), '2015-04-08').documentEndpoint]"
+      "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('multiMasterEndpoint')), '2021-01-15').documentEndpoint]"
     },
     "MultiMasterKey": {
       "type": "string",
-      "value": "[listkeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('multiMasterEndpoint')), '2015-04-08').primaryMasterKey]"
+      "value": "[listkeys(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('multiMasterEndpoint')), '2021-01-15').primaryMasterKey]"
     }
   }
 }

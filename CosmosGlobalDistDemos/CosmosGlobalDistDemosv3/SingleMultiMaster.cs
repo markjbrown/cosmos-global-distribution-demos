@@ -18,16 +18,16 @@ namespace CosmosGlobalDistDemosCore
         //Benchmarks to run
         private static List<Benchmark> benchmarks = null;
 
-        public SingleMultiMaster()
+        public SingleMultiMaster(IConfiguration configuration)
         {
             try
             {
-                //Console.WriteLine($"Single-Master vs Multi-Master Read/Write Latency\n{Helpers.Line}");
+                
                 Console.WriteLine($"Starting Single-Master vs Multi-Master Read/Write Latency");
 
-                IConfigurationRoot configuration = new ConfigurationBuilder()
-                        .AddJsonFile("appSettings.json")
-                        .Build();
+                //IConfigurationRoot configuration = new ConfigurationBuilder()
+                //        .AddJsonFile("appSettings.json")
+                //        .Build();
 
                 //Define new Benchmarks
                 benchmarks = new List<Benchmark>

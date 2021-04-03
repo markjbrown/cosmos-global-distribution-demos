@@ -21,15 +21,15 @@ namespace CosmosGlobalDistDemosCore
         private static ConflictGenerator custom;
         private static ConflictGenerator none;
 
-        public ConflictResolution()
+        public ConflictResolution(IConfiguration configuration)
         {
             try
             {
                 Console.WriteLine("Starting Conflict Resolution");
 
-                IConfigurationRoot configuration = new ConfigurationBuilder()
-                        .AddJsonFile("appSettings.json")
-                        .Build();
+                //IConfigurationRoot configuration = new ConfigurationBuilder()
+                //        .AddJsonFile("appSettings.json")
+                //        .Build();
 
 
                 lww = new ConflictGenerator

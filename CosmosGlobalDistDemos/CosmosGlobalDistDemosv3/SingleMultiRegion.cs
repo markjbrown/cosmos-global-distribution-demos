@@ -22,16 +22,16 @@ namespace CosmosGlobalDistDemosCore
         //Benchmarks to run
         private static List<Benchmark> benchmarks = null;
 
-        public SingleMultiRegion()
+        public SingleMultiRegion(IConfiguration configuration)
         {
             try
             { 
                 //Console.WriteLine($"Single Region vs Multi-Region Read Latency\n{Helpers.Line}");
                 Console.WriteLine($"Starting Single Region vs Multi-Region Read Latency");
 
-                IConfigurationRoot configuration = new ConfigurationBuilder()
-                        .AddJsonFile("appSettings.json")
-                        .Build();
+                //IConfigurationRoot configuration = new ConfigurationBuilder()
+                //        .AddJsonFile("appSettings.json")
+                //        .Build();
 
                 //Define new Benchmarks
                 benchmarks = new List<Benchmark>

@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using NetFwTypeLib;
 using System.Management.Automation;
 
+
 namespace CosmosGlobalDistDemosCore
 {
     static class Helpers
@@ -53,8 +54,9 @@ namespace CosmosGlobalDistDemosCore
 
         public static string ParseEndpointFromDiag(string json)
         {
+            string suffix = ".documents.azure.com/";
             int start = json.IndexOf("//") + "//".Length;
-            int end = json.IndexOf(":443/");
+            int end = json.IndexOf(suffix) + suffix.Length;
             string endpoint = json.Substring(start, end - start);
             //int start2 = accountName.LastIndexOf("-") + "-".Length;
             //string region = accountName.Substring(start2, accountName.Length - start2);
@@ -134,6 +136,7 @@ namespace CosmosGlobalDistDemosCore
 
         public static void AddFirewallRulePS(string ruleName, string ipAddress)
         {
+            
             PowerShell ps = PowerShell.Create();
 
             string command = $"New-NetFirewallRule -DisplayName {ruleName} -Action Block -Direction Outbound -Enabled True -InterfaceType Any -RemoteAddress '{ipAddress}'";
