@@ -27,11 +27,6 @@ namespace CosmosGlobalDistDemosCore
             {
                 Console.WriteLine("Starting Conflict Resolution");
 
-                //IConfigurationRoot configuration = new ConfigurationBuilder()
-                //        .AddJsonFile("appSettings.json")
-                //        .Build();
-
-
                 lww = new ConflictGenerator
                 {
                     testName = "Generate insert conflicts on container with Last Writer Wins Policy (Max UserDefinedId Wins).",

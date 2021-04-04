@@ -25,10 +25,6 @@ namespace CosmosGlobalDistDemosCore
                 
                 Console.WriteLine($"Starting Single-Master vs Multi-Master Read/Write Latency");
 
-                //IConfigurationRoot configuration = new ConfigurationBuilder()
-                //        .AddJsonFile("appSettings.json")
-                //        .Build();
-
                 //Define new Benchmarks
                 benchmarks = new List<Benchmark>
                 {

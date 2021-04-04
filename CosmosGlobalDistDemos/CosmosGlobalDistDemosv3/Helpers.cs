@@ -54,12 +54,10 @@ namespace CosmosGlobalDistDemosCore
 
         public static string ParseEndpointFromDiag(string json)
         {
-            string suffix = ".documents.azure.com/";
+            string suffix = ".documents.azure.com";
             int start = json.IndexOf("//") + "//".Length;
             int end = json.IndexOf(suffix) + suffix.Length;
             string endpoint = json.Substring(start, end - start);
-            //int start2 = accountName.LastIndexOf("-") + "-".Length;
-            //string region = accountName.Substring(start2, accountName.Length - start2);
 
             return endpoint;
         }

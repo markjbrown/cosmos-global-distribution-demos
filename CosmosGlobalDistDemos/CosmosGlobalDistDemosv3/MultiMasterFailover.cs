@@ -24,10 +24,6 @@ namespace CosmosGlobalDistDemosCore
             {
                 Console.WriteLine($"Starting Multi-Master Failover");
 
-                //IConfigurationRoot configuration = new ConfigurationBuilder()
-                //        .AddJsonFile("appSettings.json")
-                //        .Build();
-
                 //Define new Benchmarks
                 benchmarks = new List<Benchmark>
                 {
