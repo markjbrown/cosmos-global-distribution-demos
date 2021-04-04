@@ -32,7 +32,7 @@ resolution modes where conflicts are written to the conflicts feed and then read
 ### 5. Multi-Master Failover
 
 This test conducts a failover in the SDK client in Multi-Master mode by adding a firewall rule in Windows to block the ip address for 
-the region being read from. Note: This requires the application runs on Windows 10.
+the region being read from. Note: This requires the application runs on Windows 10 and Visual Studio be run as Administrator.
 
 ## Provisioning Cosmos DB accounts
 
